@@ -43,7 +43,8 @@
         min-height: 100vh;
         color: var(--text);
         background:
-          radial-gradient(ellipse at center, rgba(35, 63, 156, 0.34) 0%, rgba(20, 30, 74, 0.2) 22%, rgba(11, 12, 15, 0) 46%),
+          radial-gradient(ellipse at 50% 18%, rgba(138, 180, 248, 0.22) 0%, rgba(197, 138, 249, 0.13) 24%, rgba(11, 12, 15, 0) 52%),
+          radial-gradient(circle at 78% 8%, rgba(103, 232, 212, 0.12), rgba(11, 12, 15, 0) 24%),
           linear-gradient(180deg, #0d0e11 0%, #0b0c0f 100%);
         font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         letter-spacing: 0;
@@ -608,36 +609,44 @@
       }
 
       .score-line {
-        display: flex;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
         align-items: center;
-        gap: 14px;
-        flex-wrap: wrap;
+        gap: 24px;
+        padding: 22px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 28px;
+        background:
+          linear-gradient(135deg, rgba(138, 180, 248, 0.14), rgba(197, 138, 249, 0.11) 46%, rgba(103, 232, 212, 0.08)),
+          rgba(255, 255, 255, 0.035);
       }
 
       .score {
-        width: 72px;
-        height: 72px;
+        width: 106px;
+        height: 106px;
         border-radius: var(--radius-pill);
         display: grid;
         place-items: center;
         color: #071016;
-        background: conic-gradient(from 40deg, var(--blue), var(--violet), var(--cyan), var(--blue));
+        background: conic-gradient(from 40deg, var(--blue) calc(var(--score-value, 77) * 1%), rgba(255, 255, 255, 0.08) 0);
+        box-shadow: 0 0 45px rgba(138, 180, 248, 0.22);
       }
 
       .score strong {
-        width: 56px;
-        height: 56px;
+        width: 82px;
+        height: 82px;
         border-radius: var(--radius-pill);
         display: grid;
         place-items: center;
-        background: #eef5ff;
-        font-size: 20px;
+        background: #111319;
+        color: var(--text);
+        font-size: 22px;
       }
 
       .single-answer {
         display: grid;
-        gap: 20px;
-        max-width: 820px;
+        gap: 18px;
+        max-width: 860px;
       }
 
       .single-answer section {
@@ -664,6 +673,157 @@
         padding: 8px 12px;
         font-size: 13px;
         font-weight: 750;
+      }
+
+      .visual-grid {
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: 12px;
+      }
+
+      .viz-panel,
+      .plan-panel {
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 24px;
+        background: rgba(255, 255, 255, 0.04);
+        padding: 16px;
+        display: grid;
+        gap: 14px;
+      }
+
+      .viz-panel h3,
+      .plan-panel h3 {
+        color: #eef3ff;
+      }
+
+      .bar-row {
+        display: grid;
+        grid-template-columns: 110px minmax(0, 1fr) 54px;
+        align-items: center;
+        gap: 10px;
+        color: #dfe3ea;
+        font-size: 13px;
+        font-weight: 750;
+      }
+
+      .bar {
+        height: 9px;
+        border-radius: var(--radius-pill);
+        background: rgba(255, 255, 255, 0.08);
+        overflow: hidden;
+      }
+
+      .bar span {
+        display: block;
+        width: calc(var(--bar-value, 0) * 10%);
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--blue), var(--violet), var(--cyan));
+      }
+
+      .agent-flow {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .agent-pill {
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        border-radius: 18px;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .agent-pill span {
+        display: block;
+        color: var(--muted-2);
+        font-size: 11px;
+        font-weight: 850;
+        text-transform: uppercase;
+      }
+
+      .agent-pill strong {
+        display: block;
+        margin-top: 6px;
+        color: #f1f3f4;
+        font-size: 14px;
+      }
+
+      .media-strip {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .media-card {
+        min-height: 128px;
+        border-radius: 22px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.04);
+        position: relative;
+      }
+
+      .media-card img {
+        width: 100%;
+        height: 100%;
+        min-height: 128px;
+        object-fit: cover;
+        display: block;
+        filter: saturate(0.92) contrast(1.04);
+      }
+
+      .media-card span {
+        position: absolute;
+        left: 10px;
+        bottom: 10px;
+        right: 10px;
+        color: #f8fbff;
+        font-size: 12px;
+        font-weight: 850;
+        text-shadow: 0 1px 12px rgba(0, 0, 0, 0.85);
+      }
+
+      .question-grid {
+        display: grid;
+        gap: 8px;
+      }
+
+      .question-chip {
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.045);
+        color: #e9edf5;
+        padding: 12px 14px;
+        text-align: left;
+        line-height: 1.42;
+      }
+
+      .question-chip:hover {
+        border-color: rgba(138, 180, 248, 0.38);
+        background: rgba(138, 180, 248, 0.09);
+      }
+
+      .toast {
+        position: fixed;
+        left: 50%;
+        bottom: 24px;
+        z-index: 50;
+        transform: translate(-50%, 12px);
+        opacity: 0;
+        pointer-events: none;
+        border: 1px solid rgba(255, 255, 255, 0.11);
+        border-radius: var(--radius-pill);
+        background: rgba(20, 22, 28, 0.94);
+        box-shadow: 0 18px 60px rgba(0, 0, 0, 0.35);
+        color: var(--text);
+        padding: 11px 16px;
+        transition: opacity 180ms ease, transform 180ms ease;
+      }
+
+      .toast.show {
+        opacity: 1;
+        transform: translate(-50%, 0);
       }
 
       .answer-actions {
@@ -1016,7 +1176,10 @@
 
         .fields,
         .metrics,
-        .swot {
+        .swot,
+        .visual-grid,
+        .agent-flow,
+        .media-strip {
           grid-template-columns: 1fr;
         }
 
@@ -1030,6 +1193,20 @@
 
         .assistant-mark {
           display: none;
+        }
+
+        .score-line {
+          grid-template-columns: 1fr;
+        }
+
+        .score {
+          width: 88px;
+          height: 88px;
+        }
+
+        .score strong {
+          width: 68px;
+          height: 68px;
         }
       }
 
@@ -1153,6 +1330,7 @@
         <div class="sources-body" id="sourcesBody"></div>
       </aside>
     </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script>
       const API_URL = window.STARTUP_VALIDATOR_API_URL || (location.protocol.startsWith("http") ? `${location.origin}/validate` : "http://localhost:8000/validate");
@@ -1171,9 +1349,11 @@
       const sourcesBody = document.getElementById("sourcesBody");
       const home = document.getElementById("home");
       const ideaInput = document.getElementById("idea_description");
+      const toast = document.getElementById("toast");
       let lastReportText = "";
       let lastRequest = null;
       let lastReportData = null;
+      let toastTimer = null;
       document.getElementById("backendBadge").textContent = BACKEND_LABEL;
 
       function escapeHtml(value) {
@@ -1211,8 +1391,28 @@
         return `<ul class="soft-list">${(Array.isArray(items) ? items : []).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
       }
 
+      function numberValue(value, fallback = 0) {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : fallback;
+      }
+
+      function scorePercent(value) {
+        return Math.max(0, Math.min(100, Math.round(numberValue(value) * 10)));
+      }
+
       function metric(label, value) {
         return `<div class="metric"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`;
+      }
+
+      function bar(label, value) {
+        const numeric = numberValue(value);
+        return `
+          <div class="bar-row">
+            <span>${escapeHtml(label)}</span>
+            <div class="bar" style="--bar-value: ${Math.max(0, Math.min(10, numeric))};"><span></span></div>
+            <strong>${escapeHtml(numeric ? numeric.toFixed(1) : "--")}</strong>
+          </div>
+        `;
       }
 
       function trace(title, items) {
@@ -1239,6 +1439,42 @@
         return lines.length ? `${title}\n${lines.join("\n")}` : `${title}\n- Not available`;
       }
 
+      function mediaStrip(items) {
+        if (!Array.isArray(items) || !items.length) return "";
+        return `
+          <section>
+            <h3>Visual evidence from search</h3>
+            <div class="media-strip">
+              ${items.slice(0, 3).map((item, index) => `
+                <div class="media-card">
+                  <img src="${escapeHtml(item.url || item)}" alt="Market research visual ${index + 1}" loading="lazy" referrerpolicy="no-referrer" />
+                  <span>${escapeHtml(item.title || "Live market image")}</span>
+                </div>
+              `).join("")}
+            </div>
+          </section>
+        `;
+      }
+
+      function questionChips(items) {
+        if (!Array.isArray(items) || !items.length) return "";
+        return `
+          <section>
+            <h3>Questions to answer next</h3>
+            <div class="question-grid">
+              ${items.slice(0, 4).map((item) => `<button class="question-chip" type="button">${escapeHtml(item)}</button>`).join("")}
+            </div>
+          </section>
+        `;
+      }
+
+      function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove("show"), 1800);
+      }
+
       function buildPlainAnswer(data) {
         const final = data.final_evaluation || {};
         const reports = data.specialist_reports || {};
@@ -1253,7 +1489,10 @@
           `Viability: ${viability.viability_score || "--"}/10`,
           textList("Strengths", final.top_strengths),
           textList("Concerns", final.top_concerns),
-          textList("Recommendations", final.recommendations)
+          textList("Recommendations", final.recommendations),
+          textList("Validation experiments", final.validation_experiments),
+          textList("MVP blueprint", final.mvp_blueprint),
+          textList("Marketing plan", final.marketing_plan)
         ].filter(Boolean).join("\n\n");
       }
 
@@ -1292,6 +1531,7 @@
             <h3>Market research</h3>
             ${sourceItem("Pattern", `ReAct loop with ${market.react_turns || 0} turns`)}
             ${sourceItem("Status", market.status || "complete")}
+            ${sourceItem("Visuals", `${Array.isArray(market.media) ? market.media.length : 0} image result(s) returned by Tavily`)}
             ${sourceLinks(market.sources)}
             <details class="source-details">
               <summary>ReAct trace</summary>
@@ -1346,16 +1586,42 @@
       async function copyAnswer(event) {
         if (!lastReportText) return;
         const button = event.currentTarget;
+        let copied = false;
         try {
-          await navigator.clipboard.writeText(lastReportText);
+          if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(lastReportText);
+            copied = true;
+          }
+        } catch {
+          copied = false;
+        }
+
+        if (!copied) {
+          const helper = document.createElement("textarea");
+          helper.value = lastReportText;
+          helper.setAttribute("readonly", "");
+          helper.style.position = "fixed";
+          helper.style.top = "0";
+          helper.style.left = "0";
+          helper.style.opacity = "0";
+          document.body.appendChild(helper);
+          helper.focus();
+          helper.select();
+          copied = document.execCommand("copy");
+          helper.remove();
+        }
+
+        if (copied) {
           button.classList.add("copied");
           button.title = "Copied";
+          showToast("Answer copied");
           setTimeout(() => {
             button.classList.remove("copied");
             button.title = "Copy answer";
           }, 1400);
-        } catch {
+        } else {
           button.title = "Copy unavailable";
+          showToast("Copy unavailable");
         }
       }
 
@@ -1370,6 +1636,7 @@
         link.click();
         link.remove();
         URL.revokeObjectURL(url);
+        showToast("JSON report exported");
       }
 
       function renderReport(data, request) {
@@ -1379,6 +1646,7 @@
         const risk = reports.risk_swot || {};
         const viability = reports.viability_scorer || {};
         const conflicts = data.conflicts_detected || [];
+        const overallPercent = scorePercent(final.overall_score);
         lastReportText = buildPlainAnswer(data);
         lastReportData = data;
         sourcesBody.innerHTML = buildSources(data);
@@ -1396,7 +1664,7 @@
                   <h2>${escapeHtml(final.verdict || "Final verdict")}</h2>
                   <p>${escapeHtml(final.summary || "")}</p>
                 </div>
-                <div class="score"><strong>${escapeHtml(final.overall_score || "--")}</strong></div>
+                <div class="score" style="--score-value: ${overallPercent};"><strong>${escapeHtml(final.overall_score || "--")}</strong></div>
               </div>
               ${conflicts.length ? `<div class="error">${escapeHtml(conflicts.join(" "))}</div>` : ""}
 
@@ -1406,6 +1674,25 @@
                 <span class="inline-pill">Viability: ${escapeHtml(viability.viability_score || "--")} / 10</span>
                 <span class="inline-pill">Competition: ${escapeHtml(viability.competition_score || "--")} / 10</span>
               </div>
+
+              <div class="visual-grid">
+                <section class="viz-panel">
+                  <h3>Score visualization</h3>
+                  ${bar("Market", viability.market_score || 0)}
+                  ${bar("Competition", viability.competition_score || 0)}
+                  ${bar("Viability", viability.viability_score || final.overall_score || 0)}
+                </section>
+                <section class="viz-panel">
+                  <h3>Agent pipeline</h3>
+                  <div class="agent-flow">
+                    <div class="agent-pill"><span>ReAct</span><strong>${escapeHtml(market.status || "complete")}</strong></div>
+                    <div class="agent-pill"><span>Reflection</span><strong>${escapeHtml(risk.status || "complete")}</strong></div>
+                    <div class="agent-pill"><span>Tool Use</span><strong>${escapeHtml(viability.status || "complete")}</strong></div>
+                  </div>
+                </section>
+              </div>
+
+              ${mediaStrip(market.media || [])}
 
               <section>
                 <h3>What looks strong</h3>
@@ -1422,6 +1709,24 @@
                 ${list(final.recommendations || [])}
               </section>
 
+              <div class="visual-grid">
+                <section class="plan-panel">
+                  <h3>MVP and code structure</h3>
+                  ${list(final.mvp_blueprint || final.technical_structure || [])}
+                </section>
+                <section class="plan-panel">
+                  <h3>Marketing plan</h3>
+                  ${list(final.marketing_plan || [])}
+                </section>
+              </div>
+
+              <section class="plan-panel">
+                <h3>Validation experiments</h3>
+                ${list(final.validation_experiments || [])}
+              </section>
+
+              ${questionChips(final.follow_up_questions || [])}
+
               <div class="answer-actions">
                 <button class="action-btn" id="copyAnswerButton" type="button" title="Copy answer" aria-label="Copy answer">${icon("copy")}</button>
                 <button class="action-btn" id="regenerateButton" type="button" title="Regenerate analysis" aria-label="Regenerate analysis">${icon("refresh")}</button>
@@ -1433,10 +1738,20 @@
         `;
         document.getElementById("copyAnswerButton").addEventListener("click", copyAnswer);
         document.getElementById("regenerateButton").addEventListener("click", () => {
-          if (lastRequest) runValidation(lastRequest);
+          if (lastRequest) {
+            showToast("Regenerating analysis");
+            runValidation(lastRequest);
+          }
         });
         document.getElementById("exportButton").addEventListener("click", exportReport);
         document.getElementById("sourcesButton").addEventListener("click", openSources);
+        document.querySelectorAll(".question-chip").forEach((button) => {
+          button.addEventListener("click", () => {
+            ideaInput.value = button.textContent.trim();
+            ideaInput.focus();
+            showToast("Question moved to composer");
+          });
+        });
       }
 
       function renderLoading(request) {

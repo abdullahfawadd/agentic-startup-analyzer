@@ -13,7 +13,7 @@ class SearchTools:
         self.settings = settings
         self._tavily = TavilyClient(api_key=settings.tavily_api_key) if settings.tavily_api_key else None
 
-    def web_search(self, query: str, *, max_results: int = 4) -> dict[str, Any]:
+    def web_search(self, query: str, *, max_results: int = 4, include_images: bool = False) -> dict[str, Any]:
         if not self._tavily:
             raise RuntimeError("Tavily API key is not configured.")
         response = self._tavily.search(
@@ -21,11 +21,18 @@ class SearchTools:
             search_depth="basic",
             max_results=max_results,
             include_answer=True,
+            include_images=include_images,
             include_raw_content=False,
+            timeout=self.settings.api_timeout_seconds,
         )
         return {
             "query": query,
             "answer": response.get("answer") or "",
+            "images": [
+                image
+                for image in response.get("images", [])
+                if isinstance(image, str) and image.startswith("http")
+            ][:5],
             "results": [
                 {
                     "title": item.get("title", "Untitled"),

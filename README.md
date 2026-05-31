@@ -34,6 +34,9 @@ Final Verdict + Score + Recommendations
 - Premium single-file frontend with a modern AI-product dashboard feel.
 - FastAPI backend with typed validation, health checks, CORS, and structured responses.
 - Real Groq and Tavily integrations when keys are configured.
+- Tavily visual evidence strip with relevant market images.
+- Gemini-style single-answer UI with copy, regenerate, sources, and JSON export actions.
+- Score bars, agent pipeline visualization, MVP blueprint, marketing plan, validation experiments, and follow-up questions.
 - Demo fallback mode for reliable course presentation when external APIs are unavailable.
 - Importable n8n workflow with the same response shape as FastAPI.
 - Collapsible ReAct trace, Reflection critiques, and Tool Use logs for grading.

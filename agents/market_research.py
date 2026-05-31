@@ -41,11 +41,11 @@ class MarketResearchAgent:
         status = "complete"
         search_failures = 0
 
-        for thought, query in query_plan:
+        for index, (thought, query) in enumerate(query_plan):
             trace.append(f"THOUGHT: {thought}")
             trace.append(f"ACTION: web_search({query!r})")
             try:
-                result = self.search.web_search(query, max_results=3)
+                result = self.search.web_search(query, max_results=3, include_images=index == 0)
                 observations.append(result)
                 snippet = result.get("answer") or "Returned ranked market sources and competitor references."
                 trace.append(f"OBSERVATION: {snippet[:360]}")
@@ -80,6 +80,10 @@ class MarketResearchAgent:
             "You are a senior startup market research analyst. Return strict JSON only. "
             "Be specific, cite useful signals from observations, and avoid invented source URLs."
         )
+        llm_observations = [
+            {key: value for key, value in observation.items() if key != "images"}
+            for observation in observations
+        ]
         user = f"""
 Startup: {startup}
 Idea: {idea}
@@ -88,7 +92,7 @@ Target market: {target}
 Geography: {geography}
 
 ReAct observations:
-{observations}
+{llm_observations}
 
 Wikipedia context:
 {wiki_summary}
@@ -108,6 +112,7 @@ customer_pain_points, executive_summary.
         report["reasoning_trace"] = trace + ["FINAL ANSWER: Market report synthesized from ReAct observations."]
         report["status"] = status
         report["sources"] = self._sources_from_observations(observations, wiki_summary)
+        report["media"] = self._media_from_observations(observations)
         return report
 
     def _fallback_report(self, payload: dict[str, Any], trace: list[str], status: str) -> dict[str, Any]:
@@ -125,6 +130,7 @@ customer_pain_points, executive_summary.
             "react_turns": 3,
             "reasoning_trace": trace + ["FINAL ANSWER: Fallback report generated because live research was unavailable."],
             "sources": [],
+            "media": [],
         }
 
     def _sources_from_observations(self, observations: list[dict[str, Any]], wiki: dict[str, str]) -> list[dict[str, str]]:
@@ -136,3 +142,14 @@ customer_pain_points, executive_summary.
         if wiki.get("url"):
             sources.append({"title": f"Wikipedia: {wiki.get('topic', 'Industry')}", "url": wiki["url"]})
         return sources[:8]
+
+    def _media_from_observations(self, observations: list[dict[str, Any]]) -> list[dict[str, str]]:
+        images: list[dict[str, str]] = []
+        seen: set[str] = set()
+        for observation in observations:
+            for image_url in observation.get("images", []):
+                if image_url in seen:
+                    continue
+                seen.add(image_url)
+                images.append({"title": "Market visual evidence", "url": image_url})
+        return images[:6]

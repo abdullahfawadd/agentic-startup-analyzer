@@ -128,6 +128,11 @@ Return JSON:
   "top_strengths": [],
   "top_concerns": [],
   "recommendations": [],
+  "validation_experiments": [],
+  "mvp_blueprint": [],
+  "marketing_plan": [],
+  "technical_structure": [],
+  "follow_up_questions": [],
   "summary": ""
 }}
 """
@@ -162,6 +167,31 @@ Return JSON:
                 "Start with one city and one tightly defined customer segment",
                 "Run concierge pilots before automating the full marketplace",
                 "Track savings, repeat usage, and acquisition cost from day one",
+            ],
+            "validation_experiments": [
+                "Interview 15 target buyers and measure the exact saving threshold that changes behavior",
+                "Run a concierge group-buying pilot with 30-50 orders before building automation",
+                "Compare repeat purchase rate between household buyers and small retailers",
+            ],
+            "mvp_blueprint": [
+                "Landing page with city/category selection and waitlist capture",
+                "Admin dashboard for supplier offers, pooled orders, and delivery status",
+                "Basic AI matching layer that clusters demand by product, location, and price target",
+            ],
+            "marketing_plan": [
+                "Launch with one high-frequency category and publish real savings examples",
+                "Recruit early users through local retailer partnerships and neighborhood groups",
+                "Use referral credits only after repeat purchase behavior is proven",
+            ],
+            "technical_structure": [
+                "FastAPI backend for orchestration, validation, and report generation",
+                "Agent layer split into market research, risk reflection, and viability scoring",
+                "n8n workflow mirror for visual automation and course demonstration",
+            ],
+            "follow_up_questions": [
+                "Which city and product category should the first pilot focus on?",
+                "What minimum discount makes buyers wait for pooled delivery?",
+                "Who owns supplier reliability and customer support during the pilot?",
             ],
             "summary": f"{payload['startup_name']} is {verdict.lower()} with an overall score of {score}/10. The opportunity is credible, but the launch should stay narrow until demand, margins, and retention are validated.",
             "conflict_count": len(conflicts),
