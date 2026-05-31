@@ -25,6 +25,7 @@ class Settings:
     groq_model: str = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
     api_timeout_seconds: int = int(os.getenv("API_TIMEOUT_SECONDS", "30"))
     allow_demo_fallback: bool = _as_bool(os.getenv("ALLOW_DEMO_FALLBACK"), True)
+    n8n_webhook_url: str | None = os.getenv("N8N_WEBHOOK_URL")
 
     @property
     def groq_ready(self) -> bool:
@@ -38,4 +39,3 @@ class Settings:
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
     return Settings()
-

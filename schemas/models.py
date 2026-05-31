@@ -31,3 +31,23 @@ class ValidationResponse(BaseModel):
     conflicts_detected: list[str]
     final_evaluation: dict[str, Any]
 
+
+class FollowUpRequest(BaseModel):
+    question: str = Field(..., min_length=3, max_length=800)
+    report: dict[str, Any]
+    history: list[dict[str, str]] = Field(default_factory=list, max_length=12)
+
+
+class FollowUpResponse(BaseModel):
+    answer: str
+    suggested_questions: list[str]
+
+
+class PitchDeckRequest(BaseModel):
+    report: dict[str, Any]
+    startup_name: str | None = Field(default=None, max_length=80)
+
+
+class PitchDeckResponse(BaseModel):
+    title: str
+    slides: list[dict[str, Any]]

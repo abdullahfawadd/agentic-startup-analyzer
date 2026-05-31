@@ -7,10 +7,13 @@ This folder contains an importable n8n workflow that mirrors the FastAPI backend
 1. Open n8n.
 2. Choose **Import from file**.
 3. Select `n8n/startup-validator-workflow.json`.
-4. Add credentials or environment variables:
+4. Add n8n variables in **Settings -> Variables**:
    - `GROQ_API_KEY`
    - `TAVILY_API_KEY`
 5. Activate the workflow and copy the production webhook URL.
+
+The workflow intentionally uses `$vars.GROQ_API_KEY` and `$vars.TAVILY_API_KEY`.
+Do not use `$env.*` in the HTTP nodes if your n8n instance shows `access to env vars denied`.
 
 ## Test The Webhook
 
@@ -46,6 +49,17 @@ Expected result:
 - `specialist_reports.risk_swot` exists.
 - `specialist_reports.viability_scorer` exists.
 - `final_evaluation.verdict` and `final_evaluation.overall_score` exist.
+- `final_evaluation.mvp_blueprint`, `marketing_plan`, `validation_experiments`, and `follow_up_questions` exist for the frontend advisor experience.
+
+## Frontend Testing Checklist
+
+1. Keep the n8n workflow in test mode and paste the test webhook URL into `window.STARTUP_VALIDATOR_API_URL`.
+2. Open `http://localhost:8000` or the static `frontend/index.html`.
+3. Load the Byoo demo and click **Validate**.
+4. Confirm the UI renders the single answer, sources drawer, score visualizations, and follow-up question chips.
+5. Activate the workflow, switch to the production webhook URL, then test once more.
+
+The FastAPI-only `/follow-up` and `/pitch-deck` endpoints are not required for n8n. When the frontend points directly to n8n, it keeps the same validation renderer and uses browser fallback logic for pitch deck generation unless you add matching n8n webhooks later.
 
 ## Frontend switch
 
@@ -68,9 +82,17 @@ The webhook response must keep the same shape as `POST /validate`:
 }
 ```
 
+For a side-by-side local demo, set `N8N_WEBHOOK_URL` in the FastAPI environment and open:
+
+```text
+http://127.0.0.1:8123/?backend=n8n&api=http%3A%2F%2F127.0.0.1%3A8123%2Fn8n%2Fvalidate
+```
+
+That route posts to FastAPI first, then FastAPI forwards the request to n8n. It avoids browser CORS problems while still proving the n8n workflow is powering the result.
+
 ## Notes
 
 - The workflow uses Groq for LLM generation and Tavily for market search.
 - The viability branch uses deterministic JavaScript calculations inside Code nodes.
-- If your n8n instance does not allow environment variables inside expressions, replace the credential expressions with n8n credentials before activation.
+- If your n8n instance does not allow variables, replace the API key expressions with n8n HTTP credentials before activation.
 - In the n8n editor, run each branch once and inspect the merged JSON before connecting the frontend.

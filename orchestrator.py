@@ -7,6 +7,7 @@ from agents.market_research import MarketResearchAgent
 from agents.risk_assessment import RiskAssessmentAgent
 from agents.viability_scorer import ViabilityScorerAgent
 from core.config import Settings, get_settings
+from core.json_utils import ensure_list
 from core.llm import GroqLLM
 from schemas.models import StartupValidationRequest
 
@@ -37,6 +38,84 @@ class StartupValidationOrchestrator:
             "conflicts_detected": conflicts,
             "final_evaluation": final,
         }
+
+    def answer_follow_up(
+        self,
+        *,
+        question: str,
+        report: dict[str, Any],
+        history: list[dict[str, str]] | None = None,
+    ) -> dict[str, Any]:
+        fallback = self._fallback_follow_up(question, report)
+        if not self.llm.available:
+            return fallback
+
+        system = (
+            "You are a concise startup advisor continuing a validation chat. "
+            "Answer the user's follow-up using the provided report. Return strict JSON only."
+        )
+        user = f"""
+Question:
+{question}
+
+Prior chat:
+{history or []}
+
+Validation report:
+{report}
+
+Return JSON:
+{{
+  "answer": "direct answer in 2-4 short paragraphs",
+  "suggested_questions": ["next question 1", "next question 2", "next question 3"]
+}}
+"""
+        result = self.llm.complete_json(system, user, fallback=fallback, max_tokens=750)
+        merged = {**fallback, **result}
+        return {
+            "answer": str(merged.get("answer") or fallback["answer"]),
+            "suggested_questions": [str(item) for item in ensure_list(merged.get("suggested_questions"), fallback["suggested_questions"])[:4]],
+        }
+
+    def generate_pitch_deck(self, *, report: dict[str, Any], startup_name: str | None = None) -> dict[str, Any]:
+        fallback = self._fallback_pitch_deck(report, startup_name)
+        if not self.llm.available:
+            return fallback
+
+        system = (
+            "You are a startup pitch deck strategist. Create a concise investor deck outline "
+            "from the validation report. Return strict JSON only."
+        )
+        user = f"""
+Startup name: {startup_name or "Startup"}
+
+Validation report:
+{report}
+
+Return JSON:
+{{
+  "title": "Deck title",
+  "slides": [
+    {{"title": "Slide title", "bullets": ["bullet 1", "bullet 2"], "speaker_note": "short note"}}
+  ]
+}}
+
+Create 8-10 slides: problem, customer, solution, market, product, traction/validation plan,
+business model, go-to-market, risks, ask/next steps.
+"""
+        result = self.llm.complete_json(system, user, fallback=fallback, max_tokens=1300)
+        merged = {**fallback, **result}
+        slides = []
+        for item in ensure_list(merged.get("slides"), fallback["slides"])[:10]:
+            if isinstance(item, dict):
+                slides.append(
+                    {
+                        "title": str(item.get("title") or "Slide"),
+                        "bullets": [str(bullet) for bullet in ensure_list(item.get("bullets"), [])[:5]],
+                        "speaker_note": str(item.get("speaker_note") or ""),
+                    }
+                )
+        return {"title": str(merged.get("title") or fallback["title"]), "slides": slides or fallback["slides"]}
 
     def _safe_agent(self, name: str, fn, payload: dict[str, Any]) -> dict[str, Any]:
         try:
@@ -195,4 +274,44 @@ Return JSON:
             ],
             "summary": f"{payload['startup_name']} is {verdict.lower()} with an overall score of {score}/10. The opportunity is credible, but the launch should stay narrow until demand, margins, and retention are validated.",
             "conflict_count": len(conflicts),
+        }
+
+    def _fallback_follow_up(self, question: str, report: dict[str, Any]) -> dict[str, Any]:
+        final = report.get("final_evaluation", {}) if isinstance(report, dict) else {}
+        recommendations = final.get("recommendations") or [
+            "Start with a narrow pilot",
+            "Measure repeat usage",
+            "Validate unit economics",
+        ]
+        answer = (
+            f"Based on the report, the best answer is to keep the next step narrow and measurable. "
+            f"For: {question}\n\n"
+            f"I would prioritize {recommendations[0]}. Then compare the result against customer acquisition cost, "
+            "repeat usage, and operational reliability before expanding the scope."
+        )
+        return {
+            "answer": answer,
+            "suggested_questions": [
+                "What should the first 30-day pilot measure?",
+                "Which customer segment should launch first?",
+                "What would make this idea non-viable?",
+            ],
+        }
+
+    def _fallback_pitch_deck(self, report: dict[str, Any], startup_name: str | None) -> dict[str, Any]:
+        final = report.get("final_evaluation", {}) if isinstance(report, dict) else {}
+        name = startup_name or "Startup"
+        return {
+            "title": f"{name} Investor Pitch Deck Outline",
+            "slides": [
+                {"title": "Problem", "bullets": final.get("top_concerns", ["Customers face a painful, measurable workflow problem"])[:3], "speaker_note": "Open with the customer pain and why now."},
+                {"title": "Target Customer", "bullets": ["Define the first narrow segment", "Show who pays or repeats", "Explain the buying trigger"], "speaker_note": "Avoid a broad everyone-market."},
+                {"title": "Solution", "bullets": final.get("top_strengths", ["Focused AI-enabled workflow", "Clear launch wedge"])[:3], "speaker_note": "Connect the product directly to the pain."},
+                {"title": "Market Opportunity", "bullets": ["Show TAM/SAM/SOM", "Use live market signals", "Name adjacent competitors"], "speaker_note": "Keep market claims tied to sources."},
+                {"title": "MVP", "bullets": final.get("mvp_blueprint", ["Landing page", "Admin dashboard", "Concierge pilot"])[:4], "speaker_note": "Explain what will be built first."},
+                {"title": "Validation Plan", "bullets": final.get("validation_experiments", ["Run pilot", "Measure retention", "Track unit economics"])[:4], "speaker_note": "This is strongest for a course demo."},
+                {"title": "Go-To-Market", "bullets": final.get("marketing_plan", ["Launch one city", "Partner locally", "Publish proof"])[:4], "speaker_note": "Show a practical acquisition channel."},
+                {"title": "Risks", "bullets": final.get("top_concerns", ["Competition", "Trust", "Operations"])[:4], "speaker_note": "Be honest, then explain mitigation."},
+                {"title": "Next Steps", "bullets": final.get("recommendations", ["Pilot", "Measure", "Iterate"])[:4], "speaker_note": "Close with a concrete plan."},
+            ],
         }

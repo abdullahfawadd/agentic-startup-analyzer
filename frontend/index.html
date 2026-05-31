@@ -826,6 +826,167 @@
         transform: translate(-50%, 0);
       }
 
+      .modal-shell {
+        position: fixed;
+        inset: 0;
+        z-index: 40;
+        pointer-events: none;
+        visibility: hidden;
+      }
+
+      .modal-shell.open {
+        pointer-events: auto;
+        visibility: visible;
+      }
+
+      .modal-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0);
+        transition: background 180ms ease;
+      }
+
+      .modal-shell.open .modal-backdrop {
+        background: rgba(0, 0, 0, 0.54);
+      }
+
+      .modal-panel {
+        position: absolute;
+        inset: 32px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 28px;
+        background:
+          radial-gradient(circle at 18% 0%, rgba(138, 180, 248, 0.16), transparent 34%),
+          radial-gradient(circle at 82% 12%, rgba(197, 138, 249, 0.14), transparent 34%),
+          #080a0f;
+        box-shadow: 0 34px 110px rgba(0, 0, 0, 0.62);
+        transform: translateY(18px) scale(0.98);
+        opacity: 0;
+        transition: opacity 200ms ease, transform 200ms ease;
+        display: grid;
+        grid-template-rows: auto 1fr;
+        overflow: hidden;
+      }
+
+      .modal-shell.open .modal-panel {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+
+      .modal-head {
+        min-height: 68px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        padding: 0 22px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .modal-head h2 {
+        margin: 0;
+        font-size: 21px;
+        font-weight: 650;
+      }
+
+      .modal-body {
+        min-height: 0;
+        overflow: auto;
+        padding: 24px;
+      }
+
+      .slide {
+        width: min(1120px, 100%);
+        min-height: 620px;
+        margin: 0 auto;
+        border-radius: 28px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background:
+          linear-gradient(135deg, rgba(138, 180, 248, 0.11), rgba(197, 138, 249, 0.08) 45%, rgba(103, 232, 212, 0.07)),
+          rgba(255, 255, 255, 0.035);
+        padding: 34px;
+        display: grid;
+        gap: 24px;
+      }
+
+      .slide-title {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        align-items: flex-start;
+      }
+
+      .slide-title h3 {
+        margin: 0;
+        font-size: clamp(28px, 5vw, 54px);
+        line-height: 1.05;
+        font-weight: 520;
+      }
+
+      .slide-title p {
+        max-width: 340px;
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.55;
+      }
+
+      .architecture-flow {
+        display: grid;
+        grid-template-columns: 1fr 1.1fr 1fr;
+        gap: 14px;
+        align-items: stretch;
+      }
+
+      .arch-node {
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.045);
+        padding: 18px;
+        display: grid;
+        gap: 8px;
+      }
+
+      .arch-node strong {
+        color: #f4f7ff;
+        font-size: 17px;
+      }
+
+      .arch-node span {
+        color: var(--muted);
+        line-height: 1.45;
+      }
+
+      .arch-agents {
+        display: grid;
+        gap: 10px;
+      }
+
+      .deck-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .deck-card {
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.045);
+        padding: 18px;
+        display: grid;
+        gap: 10px;
+      }
+
+      .deck-card h3 {
+        margin: 0;
+        font-size: 19px;
+      }
+
+      .deck-card p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
       .answer-actions {
         display: flex;
         align-items: center;
@@ -1208,6 +1369,27 @@
           width: 68px;
           height: 68px;
         }
+
+        .modal-panel {
+          inset: 10px;
+          border-radius: 22px;
+        }
+
+        .modal-body {
+          padding: 14px;
+        }
+
+        .slide {
+          min-height: auto;
+          padding: 20px;
+        }
+
+        .slide-title,
+        .architecture-flow,
+        .deck-grid {
+          grid-template-columns: 1fr;
+          display: grid;
+        }
       }
 
       @media (max-width: 520px) {
@@ -1330,11 +1512,23 @@
         <div class="sources-body" id="sourcesBody"></div>
       </aside>
     </div>
+    <div class="modal-shell" id="modalShell" aria-hidden="true">
+      <div class="modal-backdrop" id="modalBackdrop"></div>
+      <section class="modal-panel" aria-label="Project panel">
+        <div class="modal-head">
+          <h2 id="modalTitle">Project panel</h2>
+          <button class="close-sources" id="closeModal" type="button" aria-label="Close panel">x</button>
+        </div>
+        <div class="modal-body" id="modalBody"></div>
+      </section>
+    </div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script>
-      const API_URL = window.STARTUP_VALIDATOR_API_URL || (location.protocol.startsWith("http") ? `${location.origin}/validate` : "http://localhost:8000/validate");
-      const BACKEND_LABEL = window.STARTUP_VALIDATOR_BACKEND_LABEL || "FastAPI";
+      const params = new URLSearchParams(location.search);
+      const API_URL = params.get("api") || window.STARTUP_VALIDATOR_API_URL || (location.protocol.startsWith("http") ? `${location.origin}/validate` : "http://localhost:8000/validate");
+      const BACKEND_LABEL = params.get("backend") || window.STARTUP_VALIDATOR_BACKEND_LABEL || "FastAPI";
+      const IS_N8N_MODE = /n8n/i.test(BACKEND_LABEL) || /\/webhook(-test)?\//.test(API_URL) || /\/n8n\/validate\/?$/.test(API_URL);
       const REQUEST_TIMEOUT_MS = 180000;
       const steps = ["Preparing", "Researching", "Reflecting", "Scoring", "Synthesizing"];
 
@@ -1350,9 +1544,13 @@
       const home = document.getElementById("home");
       const ideaInput = document.getElementById("idea_description");
       const toast = document.getElementById("toast");
+      const modalShell = document.getElementById("modalShell");
+      const modalTitle = document.getElementById("modalTitle");
+      const modalBody = document.getElementById("modalBody");
       let lastReportText = "";
       let lastRequest = null;
       let lastReportData = null;
+      let chatHistory = [];
       let toastTimer = null;
       document.getElementById("backendBadge").textContent = BACKEND_LABEL;
 
@@ -1389,6 +1587,15 @@
 
       function list(items) {
         return `<ul class="soft-list">${(Array.isArray(items) ? items : []).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+      }
+
+      function paragraphs(text) {
+        return String(text || "")
+          .split(/\n{2,}/)
+          .map((part) => part.trim())
+          .filter(Boolean)
+          .map((part) => `<p>${escapeHtml(part)}</p>`)
+          .join("");
       }
 
       function numberValue(value, fallback = 0) {
@@ -1429,6 +1636,9 @@
           copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"></path></svg>',
           refresh: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M21 12a9 9 0 0 1-15.3 6.4"></path><path d="M3 12A9 9 0 0 1 18.3 5.6"></path><path d="M18 2v4h4"></path><path d="M6 22v-4H2"></path></svg>',
           download: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5"></path><path d="M12 15V3"></path></svg>',
+          pdf: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"></path><path d="M14 2v6h6"></path><path d="M8 15h1.5a1.5 1.5 0 0 0 0-3H8v6"></path><path d="M13 12v6h1a3 3 0 0 0 0-6Z"></path></svg>',
+          deck: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><rect x="3" y="4" width="18" height="14" rx="2"></rect><path d="M8 21h8"></path><path d="M12 18v3"></path><path d="M7 9h5"></path><path d="M7 13h10"></path></svg>',
+          diagram: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="8.5" y="14" width="7" height="7" rx="1.5"></rect><path d="M10 6.5h4"></path><path d="M12 10v4"></path></svg>',
           sources: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"></path></svg>'
         };
         return icons[name] || "";
@@ -1473,6 +1683,26 @@
         toast.classList.add("show");
         clearTimeout(toastTimer);
         toastTimer = setTimeout(() => toast.classList.remove("show"), 1800);
+      }
+
+      function apiEndpoint(path) {
+        if (IS_N8N_MODE) return null;
+        if (/\/validate\/?$/.test(API_URL)) {
+          return API_URL.replace(/\/validate\/?$/, path);
+        }
+        return null;
+      }
+
+      function openModal(title, body) {
+        modalTitle.textContent = title;
+        modalBody.innerHTML = body;
+        modalShell.classList.add("open");
+        modalShell.setAttribute("aria-hidden", "false");
+      }
+
+      function closeModal() {
+        modalShell.classList.remove("open");
+        modalShell.setAttribute("aria-hidden", "true");
       }
 
       function buildPlainAnswer(data) {
@@ -1575,7 +1805,7 @@
         home.classList.add("compact");
         advancedFields.open = false;
         ideaInput.value = "";
-        ideaInput.placeholder = "Ask another startup idea";
+        ideaInput.placeholder = lastReportData ? "Ask a follow-up about this report" : "Ask another startup idea";
       }
 
       function resetComposer() {
@@ -1639,6 +1869,192 @@
         showToast("JSON report exported");
       }
 
+      function fallbackFollowUp(question) {
+        const final = lastReportData?.final_evaluation || {};
+        const recommendations = final.recommendations || ["start with a small pilot", "measure retention", "validate unit economics"];
+        return {
+          answer: `For "${question}", I would keep the response tied to the current validation: ${recommendations[0]}. The important part is to turn this into a measurable next step instead of a broad strategy.\n\nA good semester-demo answer is: define one target segment, run a small pilot, track savings/repeat usage/acquisition cost, then use those numbers to decide whether the idea deserves more build effort.`,
+          suggested_questions: [
+            "What should the first pilot look like?",
+            "What metrics should I show in my presentation?",
+            "What is the biggest risk to explain to the evaluator?"
+          ]
+        };
+      }
+
+      async function requestFollowUp(question) {
+        const endpoint = apiEndpoint("/follow-up");
+        if (!endpoint || !lastReportData) return fallbackFollowUp(question);
+        try {
+          const response = await fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ question, report: lastReportData, history: chatHistory.slice(-8) })
+          });
+          if (!response.ok) throw new Error("Follow-up failed");
+          return await response.json();
+        } catch {
+          return fallbackFollowUp(question);
+        }
+      }
+
+      async function runFollowUp(question) {
+        if (!question || !lastReportData) return;
+        compactComposer();
+        ideaInput.value = "";
+        submitButton.disabled = true;
+        submitButton.textContent = "Thinking";
+        const loadingId = `followup-${Date.now()}`;
+        thread.insertAdjacentHTML("beforeend", `
+          <div class="turn"><div class="user-bubble">${escapeHtml(question)}</div></div>
+          <div class="turn assistant" id="${loadingId}">
+            <div class="assistant-mark">AI</div>
+            <div class="answer"><p>Thinking through the report and your follow-up...</p></div>
+          </div>
+        `);
+        document.getElementById(loadingId)?.scrollIntoView({ behavior: "smooth", block: "center" });
+        try {
+          const result = await requestFollowUp(question);
+          chatHistory.push({ role: "user", content: question }, { role: "assistant", content: result.answer || "" });
+          document.getElementById(loadingId).outerHTML = `
+            <div class="turn assistant">
+              <div class="assistant-mark">AI</div>
+              <div class="answer">
+                ${paragraphs(result.answer || "I could not generate a follow-up answer.")}
+                ${questionChips(result.suggested_questions || [])}
+              </div>
+            </div>
+          `;
+        } finally {
+          submitButton.disabled = false;
+          submitButton.textContent = "Ask";
+        }
+      }
+
+      function reportPrintHtml() {
+        const final = lastReportData?.final_evaluation || {};
+        const reports = lastReportData?.specialist_reports || {};
+        const market = reports.market_research || {};
+        const viability = reports.viability_scorer || {};
+        const section = (title, items) => `<section><h2>${escapeHtml(title)}</h2>${list(items || [])}</section>`;
+        return `
+          <!doctype html>
+          <html>
+            <head>
+              <title>${escapeHtml(lastRequest?.startup_name || "Startup")} Investor Report</title>
+              <style>
+                body { font-family: Inter, Arial, sans-serif; margin: 42px; color: #111827; }
+                h1 { font-size: 36px; margin: 0 0 8px; }
+                h2 { margin: 24px 0 8px; font-size: 18px; }
+                p, li { line-height: 1.55; }
+                .meta { display: flex; gap: 12px; flex-wrap: wrap; margin: 18px 0; }
+                .pill { border: 1px solid #d1d5db; border-radius: 999px; padding: 8px 12px; }
+                section { break-inside: avoid; }
+              </style>
+            </head>
+            <body>
+              <h1>${escapeHtml(lastRequest?.startup_name || "Startup")} Investor Report</h1>
+              <p>${escapeHtml(final.summary || "")}</p>
+              <div class="meta">
+                <span class="pill">Verdict: ${escapeHtml(final.verdict || "--")}</span>
+                <span class="pill">Score: ${escapeHtml(final.overall_score || "--")}/10</span>
+                <span class="pill">Market: ${escapeHtml(market.estimated_market_size || "Unknown")}</span>
+                <span class="pill">Viability: ${escapeHtml(viability.viability_score || "--")}/10</span>
+              </div>
+              ${section("Strengths", final.top_strengths)}
+              ${section("Concerns", final.top_concerns)}
+              ${section("Recommendations", final.recommendations)}
+              ${section("MVP Blueprint", final.mvp_blueprint)}
+              ${section("Marketing Plan", final.marketing_plan)}
+              ${section("Validation Experiments", final.validation_experiments)}
+            </body>
+          </html>
+        `;
+      }
+
+      function exportPdfReport() {
+        if (!lastReportData) return;
+        const reportWindow = window.open("", "_blank", "width=980,height=760");
+        if (!reportWindow) {
+          showToast("Allow popups to export PDF");
+          return;
+        }
+        reportWindow.document.write(reportPrintHtml());
+        reportWindow.document.close();
+        reportWindow.focus();
+        setTimeout(() => reportWindow.print(), 350);
+        showToast("PDF print view opened");
+      }
+
+      function renderArchitecture() {
+        openModal("Slide-ready architecture", `
+          <div class="slide">
+            <div class="slide-title">
+              <h3>Agentic Startup Validator Architecture</h3>
+              <p>Hub-and-spoke orchestration with three course patterns: ReAct, Reflection, and Tool Use. Same response contract supports FastAPI and n8n.</p>
+            </div>
+            <div class="architecture-flow">
+              <div class="arch-node"><strong>User Input</strong><span>Startup idea, industry, geography, team size, timeline, and UVP.</span></div>
+              <div class="arch-agents">
+                <div class="arch-node"><strong>Market Research Agent</strong><span>ReAct loop with Tavily, Wikipedia, sources, and visual evidence.</span></div>
+                <div class="arch-node"><strong>Risk & SWOT Agent</strong><span>Reflection loop with generator, critic, and revision.</span></div>
+                <div class="arch-node"><strong>Viability Scorer</strong><span>Tool Use pattern with deterministic scoring tools.</span></div>
+              </div>
+              <div class="arch-node"><strong>Orchestrator Synthesis</strong><span>Conflict detection, final verdict, MVP plan, marketing plan, pitch deck, and follow-up chat.</span></div>
+            </div>
+            <div class="visual-grid">
+              <div class="arch-node"><strong>FastAPI Backend</strong><span>/validate, /follow-up, /pitch-deck, /health</span></div>
+              <div class="arch-node"><strong>n8n Workflow</strong><span>Webhook, branches, merge, synthesis, respond-to-webhook</span></div>
+            </div>
+          </div>
+        `);
+      }
+
+      function fallbackPitchDeck() {
+        const final = lastReportData?.final_evaluation || {};
+        return {
+          title: `${lastRequest?.startup_name || "Startup"} Pitch Deck Outline`,
+          slides: [
+            { title: "Problem", bullets: final.top_concerns || ["Pain is meaningful but needs proof"], speaker_note: "Open with the user's pain." },
+            { title: "Solution", bullets: final.top_strengths || ["Focused AI-powered workflow"], speaker_note: "Explain the wedge." },
+            { title: "MVP", bullets: final.mvp_blueprint || ["Landing page", "Concierge pilot"], speaker_note: "Show what gets built first." },
+            { title: "Go-To-Market", bullets: final.marketing_plan || ["One city", "One segment"], speaker_note: "Show acquisition focus." },
+            { title: "Validation", bullets: final.validation_experiments || ["Measure retention and CAC"], speaker_note: "Show how risk gets reduced." },
+            { title: "Next Steps", bullets: final.recommendations || ["Pilot, measure, iterate"], speaker_note: "Close with action." }
+          ]
+        };
+      }
+
+      async function generatePitchDeck() {
+        if (!lastReportData) return;
+        showToast("Generating pitch deck");
+        const endpoint = apiEndpoint("/pitch-deck");
+        let deck = fallbackPitchDeck();
+        if (endpoint) {
+          try {
+            const response = await fetch(endpoint, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ report: lastReportData, startup_name: lastRequest?.startup_name })
+            });
+            if (response.ok) deck = await response.json();
+          } catch {
+            deck = fallbackPitchDeck();
+          }
+        }
+        openModal(deck.title || "Pitch deck outline", `
+          <div class="deck-grid">
+            ${(deck.slides || []).map((slide, index) => `
+              <article class="deck-card">
+                <h3>${index + 1}. ${escapeHtml(slide.title || "Slide")}</h3>
+                ${list(slide.bullets || [])}
+                <p>${escapeHtml(slide.speaker_note || "")}</p>
+              </article>
+            `).join("")}
+          </div>
+        `);
+      }
+
       function renderReport(data, request) {
         const final = data.final_evaluation || {};
         const reports = data.specialist_reports || {};
@@ -1649,6 +2065,8 @@
         const overallPercent = scorePercent(final.overall_score);
         lastReportText = buildPlainAnswer(data);
         lastReportData = data;
+        ideaInput.placeholder = "Ask a follow-up about this report";
+        submitButton.textContent = "Ask";
         sourcesBody.innerHTML = buildSources(data);
 
         thread.innerHTML = `
@@ -1730,6 +2148,9 @@
               <div class="answer-actions">
                 <button class="action-btn" id="copyAnswerButton" type="button" title="Copy answer" aria-label="Copy answer">${icon("copy")}</button>
                 <button class="action-btn" id="regenerateButton" type="button" title="Regenerate analysis" aria-label="Regenerate analysis">${icon("refresh")}</button>
+                <button class="action-btn" id="pdfButton" type="button" title="Export investor PDF" aria-label="Export investor PDF">${icon("pdf")}</button>
+                <button class="action-btn" id="deckButton" type="button" title="Generate pitch deck outline" aria-label="Generate pitch deck outline">${icon("deck")}</button>
+                <button class="action-btn" id="architectureButton" type="button" title="Architecture diagram" aria-label="Architecture diagram">${icon("diagram")}</button>
                 <button class="action-btn" id="exportButton" type="button" title="Export JSON report" aria-label="Export JSON report">${icon("download")}</button>
                 <button class="action-btn sources-action" id="sourcesButton" type="button" title="View sources">${icon("sources")}<span>Sources</span></button>
               </div>
@@ -1743,15 +2164,11 @@
             runValidation(lastRequest);
           }
         });
+        document.getElementById("pdfButton").addEventListener("click", exportPdfReport);
+        document.getElementById("deckButton").addEventListener("click", generatePitchDeck);
+        document.getElementById("architectureButton").addEventListener("click", renderArchitecture);
         document.getElementById("exportButton").addEventListener("click", exportReport);
         document.getElementById("sourcesButton").addEventListener("click", openSources);
-        document.querySelectorAll(".question-chip").forEach((button) => {
-          button.addEventListener("click", () => {
-            ideaInput.value = button.textContent.trim();
-            ideaInput.focus();
-            showToast("Question moved to composer");
-          });
-        });
       }
 
       function renderLoading(request) {
@@ -1771,6 +2188,11 @@
       }
 
       async function checkHealth() {
+        if (IS_N8N_MODE) {
+          healthDot.className = "dot ok";
+          healthText.textContent = "n8n webhook mode";
+          return;
+        }
         try {
           const healthUrl = API_URL.replace(/\/validate\/?$/, "/health");
           const response = await fetch(healthUrl);
@@ -1804,6 +2226,8 @@
       async function runValidation(requestOverride = null) {
         const request = requestOverride || payload();
         lastRequest = request;
+        chatHistory = [];
+        lastReportData = null;
         compactComposer();
         submitButton.disabled = true;
         submitButton.textContent = "Running";
@@ -1825,7 +2249,7 @@
           renderError(error);
         } finally {
           submitButton.disabled = false;
-          submitButton.textContent = "Validate";
+          submitButton.textContent = lastReportData ? "Ask" : "Validate";
         }
       }
 
@@ -1842,6 +2266,15 @@
 
       form.addEventListener("submit", (event) => {
         event.preventDefault();
+        const question = ideaInput.value.trim();
+        if (lastReportData && home.classList.contains("compact")) {
+          if (question) {
+            runFollowUp(question);
+          } else {
+            showToast("Ask a follow-up question");
+          }
+          return;
+        }
         runValidation();
       });
       document.getElementById("demoButton").addEventListener("click", loadByoo);
@@ -1851,6 +2284,8 @@
         lastRequest = null;
         lastReportData = null;
         lastReportText = "";
+        chatHistory = [];
+        submitButton.textContent = "Validate";
         resetComposer();
       });
       document.getElementById("setupButton").addEventListener("click", () => {
@@ -1861,6 +2296,12 @@
       });
       document.getElementById("closeSources").addEventListener("click", closeSources);
       document.getElementById("sourceBackdrop").addEventListener("click", closeSources);
+      document.getElementById("closeModal").addEventListener("click", closeModal);
+      document.getElementById("modalBackdrop").addEventListener("click", closeModal);
+      thread.addEventListener("click", (event) => {
+        const button = event.target.closest(".question-chip");
+        if (button) runFollowUp(button.textContent.trim());
+      });
 
       checkHealth();
     </script>

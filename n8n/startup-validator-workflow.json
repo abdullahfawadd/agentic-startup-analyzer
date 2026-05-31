@@ -36,7 +36,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\"api_key\":\"{{$env.TAVILY_API_KEY}}\",\"query\":\"{{$json.input.industry}} market size {{$json.input.geography}} competitors trends\",\"search_depth\":\"basic\",\"max_results\":4,\"include_answer\":true,\"include_images\":true}"
+        "jsonBody": "={\"api_key\":\"{{$vars.TAVILY_API_KEY}}\",\"query\":\"{{$json.input.industry}} market size {{$json.input.geography}} competitors trends\",\"search_depth\":\"basic\",\"max_results\":4,\"include_answer\":true,\"include_images\":true}"
       },
       "id": "tavily",
       "name": "Market Search Tool",
@@ -61,7 +61,7 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "Authorization", "value": "=Bearer {{$env.GROQ_API_KEY}}" },
+            { "name": "Authorization", "value": "=Bearer {{$vars.GROQ_API_KEY}}" },
             { "name": "Content-Type", "value": "application/json" }
           ]
         },
