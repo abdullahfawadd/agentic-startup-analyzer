@@ -38,7 +38,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\"query\":\"{{$json.input.industry}} market size {{$json.input.geography}} competitors trends\",\"search_depth\":\"basic\",\"max_results\":4,\"include_answer\":true,\"include_images\":true}"
+        "jsonBody": "={{ JSON.stringify({ query: String($json.input.industry || '') + ' market size ' + String($json.input.geography || '') + ' competitors trends', search_depth: 'basic', max_results: 4, include_answer: true, include_images: true }) }}"
       },
       "id": "tavily",
       "name": "Market Search Tool",
@@ -70,7 +70,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\"model\":\"llama-3.1-8b-instant\",\"temperature\":0.2,\"messages\":[{\"role\":\"system\",\"content\":\"Return strict JSON only. Create a specific SWOT risk report.\"},{\"role\":\"user\",\"content\":\"Startup input: \" + JSON.stringify($json.input) + \" Return keys swot, risk_level, key_risks, executive_summary.\"}]}"
+        "jsonBody": "={{ JSON.stringify({ model: 'llama-3.1-8b-instant', temperature: 0.2, messages: [{ role: 'system', content: 'Return strict JSON only. Create a specific SWOT risk report.' }, { role: 'user', content: 'Startup input: ' + JSON.stringify($json.input) + ' Return keys swot, risk_level, key_risks, executive_summary.' }] }) }}"
       },
       "id": "swot-llm",
       "name": "SWOT Generator",

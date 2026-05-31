@@ -30,6 +30,15 @@ In n8n:
 
 Keep `Content-Type: application/json` as a normal header in the node. The Tavily key should not be pasted into the JSON body.
 
+## JSON Body Error Fix
+
+If n8n shows `JSON parameter needs to be valid JSON`, make sure the HTTP Request nodes use the imported `JSON.stringify(...)` expression bodies:
+
+- `Market Search Tool`: JSON body is generated from the input fields and does not contain the Tavily key.
+- `SWOT Generator`: JSON body is generated with `model`, `temperature`, and `messages`.
+
+Do not manually paste JavaScript concatenation inside a raw JSON object. In n8n, the whole JSON body field should be an expression that returns valid JSON.
+
 ## Test The Webhook
 
 Use **Test workflow** first, then send this request to the test webhook URL shown by n8n:
