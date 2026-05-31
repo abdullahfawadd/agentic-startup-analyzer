@@ -18,7 +18,7 @@ class SearchTools:
             raise RuntimeError("Tavily API key is not configured.")
         response = self._tavily.search(
             query=query,
-            search_depth="advanced",
+            search_depth="basic",
             max_results=max_results,
             include_answer=True,
             include_raw_content=False,
@@ -49,4 +49,3 @@ class SearchTools:
             "summary": payload.get("extract", "")[:900],
             "url": payload.get("content_urls", {}).get("desktop", {}).get("page", ""),
         }
-

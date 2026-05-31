@@ -1110,7 +1110,7 @@
     <script>
       const API_URL = window.STARTUP_VALIDATOR_API_URL || (location.protocol.startsWith("http") ? `${location.origin}/validate` : "http://localhost:8000/validate");
       const BACKEND_LABEL = window.STARTUP_VALIDATOR_BACKEND_LABEL || "FastAPI";
-      const REQUEST_TIMEOUT_MS = 120000;
+      const REQUEST_TIMEOUT_MS = 180000;
       const steps = ["Preparing", "Researching", "Reflecting", "Scoring", "Synthesizing"];
 
       const form = document.getElementById("ideaForm");

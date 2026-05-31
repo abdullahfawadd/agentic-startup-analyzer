@@ -39,16 +39,18 @@ class MarketResearchAgent:
         trace: list[str] = []
         observations: list[dict[str, Any]] = []
         status = "complete"
+        search_failures = 0
 
         for thought, query in query_plan:
             trace.append(f"THOUGHT: {thought}")
             trace.append(f"ACTION: web_search({query!r})")
             try:
-                result = self.search.web_search(query)
+                result = self.search.web_search(query, max_results=3)
                 observations.append(result)
                 snippet = result.get("answer") or "Returned ranked market sources and competitor references."
                 trace.append(f"OBSERVATION: {snippet[:360]}")
             except Exception as exc:
+                search_failures += 1
                 status = "degraded"
                 fallback = {
                     "query": query,
@@ -65,7 +67,10 @@ class MarketResearchAgent:
                 trace.append(f"ACTION: get_wikipedia_summary({industry!r})")
                 trace.append(f"OBSERVATION: {wiki_summary['summary'][:300]}")
         except Exception:
-            status = "degraded"
+            if search_failures == len(query_plan):
+                status = "degraded"
+            elif status == "complete":
+                status = "complete_with_notes"
 
         fallback = self._fallback_report(payload, trace, status)
         if not self.llm.available:
@@ -92,7 +97,7 @@ Return JSON with these keys:
 market_analysis, estimated_market_size, top_competitors, key_trends,
 customer_pain_points, executive_summary.
 """
-        report = self.llm.complete_json(system, user, fallback=fallback, max_tokens=1400)
+        report = self.llm.complete_json(system, user, fallback=fallback, max_tokens=900)
         report["top_competitors"] = ensure_list(report.get("top_competitors"), fallback["top_competitors"])[:5]
         report["key_trends"] = ensure_list(report.get("key_trends"), fallback["key_trends"])[:5]
         report["customer_pain_points"] = ensure_list(
@@ -131,4 +136,3 @@ customer_pain_points, executive_summary.
         if wiki.get("url"):
             sources.append({"title": f"Wikipedia: {wiki.get('topic', 'Industry')}", "url": wiki["url"]})
         return sources[:8]
-

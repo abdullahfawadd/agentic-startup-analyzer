@@ -131,7 +131,7 @@ Return JSON:
   "summary": ""
 }}
 """
-        result = self.llm.complete_json(system, user, fallback=fallback, max_tokens=1200)
+        result = self.llm.complete_json(system, user, fallback=fallback, max_tokens=850)
         return {**fallback, **result}
 
     def _fallback_synthesis(self, payload: dict[str, Any], reports: dict[str, Any], conflicts: list[str]) -> dict[str, Any]:
@@ -166,4 +166,3 @@ Return JSON:
             "summary": f"{payload['startup_name']} is {verdict.lower()} with an overall score of {score}/10. The opportunity is credible, but the launch should stay narrow until demand, margins, and retention are validated.",
             "conflict_count": len(conflicts),
         }
-

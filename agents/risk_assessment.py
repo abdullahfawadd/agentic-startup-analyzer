@@ -15,25 +15,31 @@ class RiskAssessmentAgent:
         if not self.llm.available:
             return fallback
 
-        current = self._generate(payload)
-        critiques: list[str] = []
-        approved = False
+        try:
+            current = self._generate(payload)
+            critiques: list[str] = []
+            approved = False
 
-        for round_index in range(1, 4):
             critique = self._critique(payload, current)
             critiques.append(critique)
             if critique.strip() == "SWOT APPROVED":
                 approved = True
-                break
-            current = self._revise(payload, current, critique, round_index + 1)
+            else:
+                current = self._revise(payload, current, critique, 2)
+                approved = False
 
-        normalized = self._normalize(current, fallback)
-        normalized["reflection_rounds"] = len(critiques)
-        normalized["approved"] = approved
-        normalized["critiques"] = critiques
-        normalized["status"] = "complete" if approved else "complete_with_notes"
-        normalized["executive_summary"] = self._summary(normalized)
-        return normalized
+            normalized = self._normalize(current, fallback)
+            normalized["reflection_rounds"] = len(critiques) + (0 if approved else 1)
+            normalized["approved"] = approved
+            normalized["critiques"] = critiques + ([] if approved else ["Revision applied from critic feedback."])
+            normalized["status"] = "complete" if approved else "complete_with_notes"
+            normalized["executive_summary"] = self._summary(normalized)
+            return normalized
+        except Exception as exc:
+            fallback["critiques"] = [f"Reflection fallback used after {type(exc).__name__}."]
+            fallback["approved"] = False
+            fallback["status"] = "degraded"
+            return fallback
 
     def _generate(self, payload: dict[str, Any]) -> dict[str, Any]:
         system = "You are a blunt startup risk analyst. Return strict JSON only."
@@ -48,7 +54,12 @@ Return JSON:
   "key_risks": []
 }}
 """
-        return self.llm.complete_json(system, user, fallback=self._fallback_swot(payload, [], 1, False, "degraded"))
+        return self.llm.complete_json(
+            system,
+            user,
+            fallback=self._fallback_swot(payload, [], 1, False, "degraded"),
+            max_tokens=850,
+        )
 
     def _critique(self, payload: dict[str, Any], swot: dict[str, Any]) -> str:
         system = (
@@ -56,7 +67,7 @@ Return JSON:
             "Realism, and Balance. If there are no issues, output exactly SWOT APPROVED."
         )
         user = f"Startup context:\n{payload}\n\nSWOT draft:\n{swot}\n\nReturn critique text only."
-        return self.llm.complete_text(system, user, temperature=0.1, max_tokens=500).strip()
+        return self.llm.complete_text(system, user, temperature=0.1, max_tokens=220).strip()
 
     def _revise(self, payload: dict[str, Any], swot: dict[str, Any], critique: str, round_number: int) -> dict[str, Any]:
         system = "You revise SWOT analyses based on critic feedback. Return strict JSON only."
@@ -73,7 +84,7 @@ Critique to address:
 Revision round: {round_number}
 Return the same JSON shape with sharper, more specific content.
 """
-        return self.llm.complete_json(system, user, fallback=swot)
+        return self.llm.complete_json(system, user, fallback=swot, max_tokens=850)
 
     def _normalize(self, data: dict[str, Any], fallback: dict[str, Any]) -> dict[str, Any]:
         swot = data.get("swot") if isinstance(data.get("swot"), dict) else fallback["swot"]
@@ -131,5 +142,6 @@ Return the same JSON shape with sharper, more specific content.
         }
 
     def _summary(self, report: dict[str, Any]) -> str:
-        return f"Risk level is {report['risk_level']}; the biggest issues are {', '.join(report['key_risks'][:2])}."
-
+        risks = [str(item) for item in ensure_list(report.get("key_risks"), [])][:2]
+        risk_text = ", ".join(risks) if risks else "execution focus and validation speed"
+        return f"Risk level is {report['risk_level']}; the biggest issues are {risk_text}."
