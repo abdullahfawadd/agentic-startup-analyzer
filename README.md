@@ -9,9 +9,9 @@ This project validates a startup idea with three specialist agents and an orches
 - **Business Viability Scorer**: Tool Use pattern with deterministic business-analysis tools.
 - **Orchestrator**: Hub-and-spoke synthesis, conflict detection, and final investor-style verdict.
 
-![Desktop report](docs/screenshots/desktop-report.png)
+![Desktop report](docs/screenshots/desktop-report.jpg)
 
-![Mobile report](docs/screenshots/mobile-report.png)
+![Mobile report](docs/screenshots/mobile-report.jpg)
 
 ## Architecture
 
@@ -144,4 +144,3 @@ tests/        Business tool and orchestrator checks
 ## Security
 
 Real API keys belong only in `.env`. The repository includes `.env.example` and ignores local environment files.
-

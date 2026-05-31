@@ -620,26 +620,48 @@
       .answer-actions {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 6px;
         flex-wrap: wrap;
         margin-top: 4px;
       }
 
       .action-btn {
+        width: 38px;
         height: 38px;
         border: 0;
         border-radius: var(--radius-pill);
         color: var(--text);
         background: transparent;
-        padding: 0 10px;
+        padding: 0;
         display: inline-flex;
+        justify-content: center;
         align-items: center;
-        gap: 8px;
         font-weight: 800;
+        cursor: pointer;
       }
 
       .action-btn:hover {
         background: rgba(255, 255, 255, 0.08);
+      }
+
+      .action-btn svg {
+        width: 20px;
+        height: 20px;
+        stroke-width: 1.9;
+      }
+
+      .action-btn.sources-action {
+        width: auto;
+        padding: 0 12px;
+        gap: 8px;
+      }
+
+      .action-btn.sources-action span {
+        font-size: 14px;
+      }
+
+      .action-btn.copied {
+        color: #b8f7ff;
       }
 
       .source-shell {
@@ -698,6 +720,14 @@
         margin: 0;
         font-size: 22px;
         font-weight: 520;
+        display: grid;
+        gap: 2px;
+      }
+
+      .sources-head h2 span {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
       }
 
       .close-sources {
@@ -1070,7 +1100,7 @@
       <div class="source-backdrop" id="sourceBackdrop"></div>
       <aside class="sources-panel" aria-label="Sources">
         <div class="sources-head">
-          <h2>Sources</h2>
+          <h2>Sources <span>Evidence, tools, and agent traces</span></h2>
           <button class="close-sources" id="closeSources" type="button" aria-label="Close sources">x</button>
         </div>
         <div class="sources-body" id="sourcesBody"></div>
@@ -1092,6 +1122,7 @@
       const advancedFields = document.getElementById("advancedFields");
       const sourceShell = document.getElementById("sourceShell");
       const sourcesBody = document.getElementById("sourcesBody");
+      let lastReportText = "";
       document.getElementById("backendBadge").textContent = BACKEND_LABEL;
 
       function escapeHtml(value) {
@@ -1142,6 +1173,38 @@
         return `<div class="metric"><span>${escapeHtml(title)}</span>${list(items || [])}</div>`;
       }
 
+      function icon(name) {
+        const icons = {
+          copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"></path></svg>',
+          refresh: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M21 12a9 9 0 0 1-15.3 6.4"></path><path d="M3 12A9 9 0 0 1 18.3 5.6"></path><path d="M18 2v4h4"></path><path d="M6 22v-4H2"></path></svg>',
+          sources: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"></path></svg>'
+        };
+        return icons[name] || "";
+      }
+
+      function textList(title, items) {
+        const lines = (Array.isArray(items) ? items : []).map((item) => `- ${item}`);
+        return lines.length ? `${title}\n${lines.join("\n")}` : `${title}\n- Not available`;
+      }
+
+      function buildPlainAnswer(data) {
+        const final = data.final_evaluation || {};
+        const reports = data.specialist_reports || {};
+        const market = reports.market_research || {};
+        const risk = reports.risk_swot || {};
+        const viability = reports.viability_scorer || {};
+        return [
+          `${final.verdict || "Final verdict"} (${final.overall_score || "--"}/10)`,
+          final.summary || "",
+          `Market: ${market.estimated_market_size || "Unknown"}`,
+          `Risk: ${risk.risk_level || "Medium"}`,
+          `Viability: ${viability.viability_score || "--"}/10`,
+          textList("Strengths", final.top_strengths),
+          textList("Concerns", final.top_concerns),
+          textList("Recommendations", final.recommendations)
+        ].filter(Boolean).join("\n\n");
+      }
+
       function sourceItem(title, body) {
         return `<div class="source-item"><strong>${escapeHtml(title)}</strong><p>${escapeHtml(body)}</p></div>`;
       }
@@ -1168,7 +1231,9 @@
             <h3>Run context</h3>
             ${sourceItem("Backend", `${BACKEND_LABEL} / ${data.execution_mode || "sequential"} orchestration`)}
             ${sourceItem("Execution time", `${data.execution_time_s || "--"} seconds`)}
+            ${sourceItem("What was used", "FastAPI coordinates three agents. Groq handles LLM reasoning, Tavily powers live market search, Wikipedia supplies public context, and deterministic Python tools calculate viability scores.")}
             ${sourceItem("Model and APIs", "Groq is used for LLM reasoning when configured. Tavily and Wikipedia support live ReAct market research. Demo fallback is used when keys or services are unavailable.")}
+            ${sourceItem("My view", "This is the cleaner presentation: keep the investor-style verdict in one chat answer, then place evidence and course-pattern proof in Sources so the UI stays premium without hiding the agent work.")}
           </section>
 
           <section class="source-section">
@@ -1214,14 +1279,30 @@
         sourceShell.setAttribute("aria-hidden", "true");
       }
 
+      async function copyAnswer(event) {
+        if (!lastReportText) return;
+        const button = event.currentTarget;
+        try {
+          await navigator.clipboard.writeText(lastReportText);
+          button.classList.add("copied");
+          button.title = "Copied";
+          setTimeout(() => {
+            button.classList.remove("copied");
+            button.title = "Copy answer";
+          }, 1400);
+        } catch {
+          button.title = "Copy unavailable";
+        }
+      }
+
       function renderReport(data, request) {
         const final = data.final_evaluation || {};
         const reports = data.specialist_reports || {};
         const market = reports.market_research || {};
         const risk = reports.risk_swot || {};
         const viability = reports.viability_scorer || {};
-        const swot = risk.swot || {};
         const conflicts = data.conflicts_detected || [];
+        lastReportText = buildPlainAnswer(data);
         sourcesBody.innerHTML = buildSources(data);
 
         thread.innerHTML = `
@@ -1263,22 +1344,16 @@
                 ${list(final.recommendations || [])}
               </section>
 
-              <section>
-                <h3>How this was evaluated</h3>
-                <p>I used three specialist passes: ReAct for market research, Reflection for SWOT/risk quality, and Tool Use for deterministic viability scoring. The detailed evidence, traces, web links, and tool calls are in Sources.</p>
-              </section>
-
               <div class="answer-actions">
-                <button class="action-btn" type="button" title="Copy">Copy</button>
-                <button class="action-btn" type="button" title="Like">Like</button>
-                <button class="action-btn" type="button" title="Dislike">Dislike</button>
-                <button class="action-btn" type="button" title="Share">Share</button>
-                <button class="action-btn" type="button" title="Regenerate">Regenerate</button>
-                <button class="action-btn" id="sourcesButton" type="button">Sources</button>
+                <button class="action-btn" id="copyAnswerButton" type="button" title="Copy answer" aria-label="Copy answer">${icon("copy")}</button>
+                <button class="action-btn" id="regenerateButton" type="button" title="Regenerate analysis" aria-label="Regenerate analysis">${icon("refresh")}</button>
+                <button class="action-btn sources-action" id="sourcesButton" type="button" title="View sources">${icon("sources")}<span>Sources</span></button>
               </div>
             </div>
           </div>
         `;
+        document.getElementById("copyAnswerButton").addEventListener("click", copyAnswer);
+        document.getElementById("regenerateButton").addEventListener("click", runValidation);
         document.getElementById("sourcesButton").addEventListener("click", openSources);
       }
 
