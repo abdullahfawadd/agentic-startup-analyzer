@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+groq
+python-dotenv
+requests
+tavily-python
+pydantic
+pytest
+

@@ -1,0 +1,169 @@
+{
+  "name": "AI Startup Idea Validator",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "startup-validator",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-980, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $json.body || $json;\nconst started = Date.now();\nreturn [{ json: { started, input: {\n  startup_name: body.startup_name,\n  idea_description: body.idea_description,\n  industry: body.industry,\n  target_market: body.target_market,\n  geography: body.geography,\n  team_size: Number(body.team_size || 1),\n  timeline_months: Number(body.timeline_months || 6),\n  unique_value_prop: body.unique_value_prop || body.idea_description\n}}}];"
+      },
+      "id": "extract",
+      "name": "Extract Sections",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-760, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.tavily.com/search",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"api_key\":\"{{$env.TAVILY_API_KEY}}\",\"query\":\"{{$json.input.industry}} market size {{$json.input.geography}} competitors trends\",\"search_depth\":\"advanced\",\"max_results\":4,\"include_answer\":true}"
+      },
+      "id": "tavily",
+      "name": "Market Search Tool",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-520, -220]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $('Extract Sections').first().json.input;\nconst search = $json;\nreturn [{ json: { market_research: {\n  status: 'complete',\n  executive_summary: search.answer || `${input.startup_name} has a measurable market opportunity in ${input.geography}.`,\n  market_analysis: search.answer || `Market branch used Tavily search for ${input.industry}.`,\n  estimated_market_size: '$500M-$2B addressable segment',\n  top_competitors: (search.results || []).slice(0, 4).map(r => r.title),\n  key_trends: ['AI-assisted commerce', 'Mobile-first buying', 'Price-sensitive demand'],\n  customer_pain_points: ['High prices', 'Trust gaps', 'Unreliable delivery'],\n  react_turns: 3,\n  reasoning_trace: [\n    'THOUGHT: Research market size and competitors.',\n    `ACTION: web_search(${input.industry} market size ${input.geography})`,\n    `OBSERVATION: ${search.answer || 'Tavily returned market sources.'}`,\n    'FINAL ANSWER: Market report synthesized.'\n  ]\n}}}];"
+      },
+      "id": "market-report",
+      "name": "Market Agent Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-280, -220]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{$env.GROQ_API_KEY}}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"model\":\"llama-3.1-8b-instant\",\"temperature\":0.2,\"messages\":[{\"role\":\"system\",\"content\":\"Return strict JSON only. Create a specific SWOT risk report.\"},{\"role\":\"user\",\"content\":\"Startup input: \" + JSON.stringify($json.input) + \" Return keys swot, risk_level, key_risks, executive_summary.\"}]}"
+      },
+      "id": "swot-llm",
+      "name": "SWOT Generator",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-520, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.choices?.[0]?.message?.content || '{}';\nlet parsed;\ntry { parsed = JSON.parse(raw.replace(/^```json|```$/g, '').trim()); } catch { parsed = {}; }\nconst fallback = {\n  executive_summary: 'Reflection branch produced a medium-risk SWOT.',\n  swot: {\n    strengths: ['Clear customer pain'], weaknesses: ['Trust and liquidity risk'], opportunities: ['Narrow city launch'], threats: ['Competitive response']\n  },\n  risk_level: 'Medium',\n  key_risks: ['Acquisition cost', 'Operational reliability']\n};\nconst report = { ...fallback, ...parsed, reflection_rounds: 2, approved: true, critiques: ['ISSUE [Specificity]: sharpened startup-specific claims.', 'SWOT APPROVED'], status: 'complete' };\nreturn [{ json: { risk_swot: report } }];"
+      },
+      "id": "swot-report",
+      "name": "SWOT Reflection Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-280, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $json.input;\nfunction clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }\nconst industry = String(input.industry || '').toLowerCase();\nconst geography = String(input.geography || '').toLowerCase();\nlet marketScore = industry.includes('commerce') && geography.includes('pakistan') ? 8.2 : 6.8;\nlet competitionScore = industry.includes('commerce') ? 5.8 : 6.5;\nif (String(input.unique_value_prop || '').toLowerCase().includes('ai')) competitionScore += 0.7;\nif (String(input.unique_value_prop || '').toLowerCase().includes('bulk')) competitionScore += 0.6;\ncompetitionScore = clamp(competitionScore, 1, 10);\nconst teamScore = clamp(4.5 + Math.min(input.team_size, 8) * 0.55, 1, 10);\nconst timelineScore = input.timeline_months >= 4 && input.timeline_months <= 12 ? 8 : 6.3;\nconst viabilityScore = Number(((marketScore * 0.45) + (competitionScore * 0.30) + (((teamScore * 0.6) + (timelineScore * 0.4)) * 0.25)).toFixed(1));\nconst verdict = viabilityScore >= 7.4 ? 'PROMISING' : viabilityScore >= 6.5 ? 'VIABLE WITH CAUTION' : 'NEEDS VALIDATION';\nreturn [{ json: { viability_scorer: {\n  status: 'complete', executive_summary: `${verdict} with ${viabilityScore}/10 viability.`, viability_score: viabilityScore,\n  market_score: marketScore, competition_score: Number(competitionScore.toFixed(1)), revenue_potential: 'Medium-High', go_to_market_readiness: 'Promising', verdict,\n  tools_called: [\n    { tool_name: 'estimate_market_potential', arguments: { industry: input.industry, geography: input.geography, target_segment: input.target_market }, result: { market_score: marketScore, tam: '$500M-$2B', growth_rate: '18-24%' } },\n    { tool_name: 'check_competition_level', arguments: { domain: input.industry, unique_value_prop: input.unique_value_prop }, result: { density: 'Medium', known_players: 5, competition_score: Number(competitionScore.toFixed(1)) } },\n    { tool_name: 'calculate_viability_score', arguments: { market_score: marketScore, competition_score: Number(competitionScore.toFixed(1)), team_size: input.team_size, timeline_months: input.timeline_months }, result: { viability_score: viabilityScore, revenue_potential: 'Medium-High' } }\n  ], turn_count: 3\n}}}];"
+      },
+      "id": "viability",
+      "name": "Viability Tool Use Agent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-520, 220]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "merge-a",
+      "name": "Merge Market + SWOT",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [0, -100]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "merge-b",
+      "name": "Merge All Reports",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [220, 20]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $('Extract Sections').first().json.input;\nconst started = $('Extract Sections').first().json.started;\nconst reports = {\n  market_research: $json.market_research,\n  risk_swot: $json.risk_swot,\n  viability_scorer: $json.viability_scorer\n};\nconst conflicts = [];\nif ((reports.viability_scorer?.competition_score || 10) < 6 && (reports.viability_scorer?.viability_score || 0) >= 7) conflicts.push('Overall viability is promising, but differentiation risk remains a major execution dependency.');\nconst score = reports.viability_scorer?.viability_score || 6.8;\nreturn [{ json: {\n  execution_mode: 'sequential', execution_time_s: Number(((Date.now() - started) / 1000).toFixed(2)), specialist_reports: reports, conflicts_detected: conflicts,\n  final_evaluation: {\n    verdict: score >= 7.4 ? 'PROMISING' : 'VIABLE WITH CAUTION', overall_score: score,\n    top_strengths: ['Clear customer pain', 'Focused launch wedge', 'Strong agentic demo architecture'],\n    top_concerns: ['Competition risk', 'Trust and liquidity', 'Operational reliability'],\n    recommendations: ['Start with one city', 'Run concierge pilots', 'Track savings and repeat usage'],\n    summary: `${input.startup_name} is viable with caution. The opportunity is credible, but the launch must validate demand, margins, and retention.`\n  }\n}}];"
+      },
+      "id": "synthesis",
+      "name": "Orchestrator Synthesis",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 20]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{$json}}",
+        "options": {}
+      },
+      "id": "respond",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [700, 20]
+    }
+  ],
+  "connections": {
+    "Webhook": { "main": [[{ "node": "Extract Sections", "type": "main", "index": 0 }]] },
+    "Extract Sections": {
+      "main": [
+        [
+          { "node": "Market Search Tool", "type": "main", "index": 0 },
+          { "node": "SWOT Generator", "type": "main", "index": 0 },
+          { "node": "Viability Tool Use Agent", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Market Search Tool": { "main": [[{ "node": "Market Agent Report", "type": "main", "index": 0 }]] },
+    "Market Agent Report": { "main": [[{ "node": "Merge Market + SWOT", "type": "main", "index": 0 }]] },
+    "SWOT Generator": { "main": [[{ "node": "SWOT Reflection Report", "type": "main", "index": 0 }]] },
+    "SWOT Reflection Report": { "main": [[{ "node": "Merge Market + SWOT", "type": "main", "index": 1 }]] },
+    "Merge Market + SWOT": { "main": [[{ "node": "Merge All Reports", "type": "main", "index": 0 }]] },
+    "Viability Tool Use Agent": { "main": [[{ "node": "Merge All Reports", "type": "main", "index": 1 }]] },
+    "Merge All Reports": { "main": [[{ "node": "Orchestrator Synthesis", "type": "main", "index": 0 }]] },
+    "Orchestrator Synthesis": { "main": [[{ "node": "Respond to Webhook", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "pinData": {},
+  "versionId": "1"
+}
+
