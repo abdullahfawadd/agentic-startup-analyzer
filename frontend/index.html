@@ -272,7 +272,17 @@
 
       .home.compact {
         min-height: auto;
-        padding: 76px 0 20px;
+        width: auto;
+        max-width: none;
+        margin: 0;
+        padding: 20px 20px 18px;
+        position: fixed;
+        left: 68px;
+        right: 0;
+        bottom: 0;
+        z-index: 18;
+        background: linear-gradient(180deg, rgba(11, 12, 15, 0), rgba(11, 12, 15, 0.86) 22%, rgba(11, 12, 15, 0.98));
+        backdrop-filter: blur(18px);
       }
 
       .center {
@@ -285,6 +295,8 @@
       }
 
       .home.compact .center {
+        width: min(860px, 100%);
+        margin: 0 auto;
         gap: 14px;
         transform: none;
       }
@@ -320,7 +332,7 @@
       }
 
       .home.compact .ask-card {
-        width: min(720px, 100%);
+        width: min(760px, 100%);
         border-radius: 30px;
         box-shadow: 0 18px 55px rgba(0, 0, 0, 0.35);
       }
@@ -507,7 +519,7 @@
       }
 
       .home.compact + .progress {
-        margin: 8px auto 24px;
+        margin: 78px auto 24px;
       }
 
       .progress.on {
@@ -541,6 +553,10 @@
         padding: 0 0 80px;
         display: grid;
         gap: 26px;
+      }
+
+      body.chat-active .thread {
+        padding-bottom: 220px;
       }
 
       .turn {
@@ -1312,6 +1328,11 @@
           padding: 40px 0 22px;
         }
 
+        .home.compact {
+          left: 0;
+          padding: 12px 12px 14px;
+        }
+
         .center {
           transform: none;
           gap: 24px;
@@ -1803,6 +1824,7 @@
 
       function compactComposer() {
         home.classList.add("compact");
+        document.body.classList.add("chat-active");
         advancedFields.open = false;
         ideaInput.value = "";
         ideaInput.placeholder = lastReportData ? "Ask a follow-up about this report" : "Ask another startup idea";
@@ -1810,6 +1832,7 @@
 
       function resetComposer() {
         home.classList.remove("compact");
+        document.body.classList.remove("chat-active");
         ideaInput.placeholder = "Ask Startup Validator";
       }
 

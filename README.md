@@ -136,7 +136,7 @@ Import:
 n8n/startup-validator-workflow.json
 ```
 
-Then configure `GROQ_API_KEY` and `TAVILY_API_KEY` as n8n variables. See [n8n/README.md](n8n/README.md).
+Then attach Groq and Tavily Header Auth credentials in n8n. See [n8n/README.md](n8n/README.md).
 
 The frontend can point to n8n by changing the script config in `frontend/index.html`:
 

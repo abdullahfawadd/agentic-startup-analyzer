@@ -7,13 +7,28 @@ This folder contains an importable n8n workflow that mirrors the FastAPI backend
 1. Open n8n.
 2. Choose **Import from file**.
 3. Select `n8n/startup-validator-workflow.json`.
-4. Add n8n variables in **Settings -> Variables**:
-   - `GROQ_API_KEY`
-   - `TAVILY_API_KEY`
-5. Activate the workflow and copy the production webhook URL.
+4. Create two **Header Auth** credentials:
+   - `Groq Header Auth`: `Name = Authorization`, `Value = Bearer <your Groq key>`
+   - `Tavily Header Auth`: `Name = Authorization`, `Value = Bearer <your Tavily key>`
+5. Open the HTTP Request nodes and attach credentials:
+   - `SWOT Generator` -> choose your Groq Header Auth credential.
+   - `Market Search Tool` -> choose your Tavily Header Auth credential.
+6. Activate the workflow and copy the production webhook URL.
 
-The workflow intentionally uses `$vars.GROQ_API_KEY` and `$vars.TAVILY_API_KEY`.
-Do not use `$env.*` in the HTTP nodes if your n8n instance shows `access to env vars denied`.
+This avoids `$env.*`, which can fail with `access to env vars denied` on some n8n setups.
+
+## Create Tavily Credential
+
+In n8n:
+
+1. Go to **Credentials -> Create credential**.
+2. Search for **Header Auth**.
+3. Set **Name** to `Authorization`.
+4. Set **Value** to `Bearer tvly-YOUR_KEY`.
+5. Save it as `Tavily Header Auth`.
+6. Open the `Market Search Tool` node and select this credential.
+
+Keep `Content-Type: application/json` as a normal header in the node. The Tavily key should not be pasted into the JSON body.
 
 ## Test The Webhook
 
@@ -94,5 +109,5 @@ That route posts to FastAPI first, then FastAPI forwards the request to n8n. It 
 
 - The workflow uses Groq for LLM generation and Tavily for market search.
 - The viability branch uses deterministic JavaScript calculations inside Code nodes.
-- If your n8n instance does not allow variables, replace the API key expressions with n8n HTTP credentials before activation.
+- The HTTP nodes use n8n Header Auth credentials so API keys stay out of the workflow JSON.
 - In the n8n editor, run each branch once and inspect the merged JSON before connecting the frontend.

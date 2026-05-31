@@ -28,6 +28,8 @@
       "parameters": {
         "method": "POST",
         "url": "https://api.tavily.com/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -36,7 +38,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\"api_key\":\"{{$vars.TAVILY_API_KEY}}\",\"query\":\"{{$json.input.industry}} market size {{$json.input.geography}} competitors trends\",\"search_depth\":\"basic\",\"max_results\":4,\"include_answer\":true,\"include_images\":true}"
+        "jsonBody": "={\"query\":\"{{$json.input.industry}} market size {{$json.input.geography}} competitors trends\",\"search_depth\":\"basic\",\"max_results\":4,\"include_answer\":true,\"include_images\":true}"
       },
       "id": "tavily",
       "name": "Market Search Tool",
@@ -58,10 +60,11 @@
       "parameters": {
         "method": "POST",
         "url": "https://api.groq.com/openai/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "Authorization", "value": "=Bearer {{$vars.GROQ_API_KEY}}" },
             { "name": "Content-Type", "value": "application/json" }
           ]
         },
