@@ -585,13 +585,187 @@
         font-size: 20px;
       }
 
-      .answer-grid {
+      .single-answer {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 20px;
+        max-width: 820px;
+      }
+
+      .single-answer section {
+        display: grid;
+        gap: 8px;
+      }
+
+      .single-answer h3 {
+        margin: 0;
+        font-size: 18px;
+      }
+
+      .inline-metrics {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .inline-pill {
+        border: 1px solid var(--line);
+        border-radius: var(--radius-pill);
+        background: rgba(255, 255, 255, 0.055);
+        color: #dfe3ea;
+        padding: 8px 12px;
+        font-size: 13px;
+        font-weight: 750;
+      }
+
+      .answer-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 4px;
+      }
+
+      .action-btn {
+        height: 38px;
+        border: 0;
+        border-radius: var(--radius-pill);
+        color: var(--text);
+        background: transparent;
+        padding: 0 10px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 800;
+      }
+
+      .action-btn:hover {
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .source-shell {
+        position: fixed;
+        inset: 0;
+        z-index: 30;
+        pointer-events: none;
+        background: transparent;
+      }
+
+      .source-shell.open {
+        pointer-events: auto;
+      }
+
+      .source-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0);
+        transition: background 180ms ease;
+      }
+
+      .source-shell.open .source-backdrop {
+        background: rgba(0, 0, 0, 0.28);
+      }
+
+      .sources-panel {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: min(470px, 100%);
+        height: 100%;
+        background: #050607;
+        border-left: 1px solid rgba(255, 255, 255, 0.11);
+        box-shadow: -28px 0 80px rgba(0, 0, 0, 0.45);
+        transform: translateX(102%);
+        transition: transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+        display: grid;
+        grid-template-rows: auto 1fr;
+      }
+
+      .source-shell.open .sources-panel {
+        transform: translateX(0);
+      }
+
+      .sources-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 66px;
+        padding: 0 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .sources-head h2 {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 520;
+      }
+
+      .close-sources {
+        width: 38px;
+        height: 38px;
+        border: 0;
+        border-radius: var(--radius-pill);
+        background: transparent;
+        color: var(--text);
+        font-size: 24px;
+      }
+
+      .close-sources:hover {
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .sources-body {
+        min-height: 0;
+        overflow: auto;
+        padding: 22px 20px 28px;
+        display: grid;
+        gap: 22px;
+      }
+
+      .source-section {
+        display: grid;
         gap: 12px;
       }
 
-      .answer-card,
+      .source-section h3 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 720;
+      }
+
+      .source-item {
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.055);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 14px;
+        display: grid;
+        gap: 8px;
+      }
+
+      .source-item strong {
+        font-size: 15px;
+      }
+
+      .source-item p,
+      .source-item a {
+        color: var(--muted);
+        margin: 0;
+        line-height: 1.48;
+        font-size: 14px;
+      }
+
+      .source-item a {
+        text-decoration: none;
+      }
+
+      .source-item a:hover {
+        color: var(--blue);
+      }
+
+      .source-details {
+        border-radius: 16px;
+      }
+
       .agent {
         border: 1px solid var(--line);
         border-radius: var(--radius-lg);
@@ -599,7 +773,6 @@
         padding: 18px;
       }
 
-      .answer-card span,
       .metric span {
         display: block;
         color: var(--muted-2);
@@ -609,7 +782,6 @@
         margin-bottom: 8px;
       }
 
-      .answer-card ul,
       .soft-list {
         margin: 0;
         padding: 0;
@@ -618,7 +790,6 @@
         gap: 8px;
       }
 
-      .answer-card li,
       .soft-list li {
         color: #d8dce5;
         line-height: 1.45;
@@ -766,10 +937,13 @@
         }
 
         .fields,
-        .answer-grid,
         .metrics,
         .swot {
           grid-template-columns: 1fr;
+        }
+
+        .sources-panel {
+          width: 100%;
         }
 
         .assistant {
@@ -892,6 +1066,17 @@
       </main>
     </div>
 
+    <div class="source-shell" id="sourceShell" aria-hidden="true">
+      <div class="source-backdrop" id="sourceBackdrop"></div>
+      <aside class="sources-panel" aria-label="Sources">
+        <div class="sources-head">
+          <h2>Sources</h2>
+          <button class="close-sources" id="closeSources" type="button" aria-label="Close sources">x</button>
+        </div>
+        <div class="sources-body" id="sourcesBody"></div>
+      </aside>
+    </div>
+
     <script>
       const API_URL = window.STARTUP_VALIDATOR_API_URL || (location.protocol.startsWith("http") ? `${location.origin}/validate` : "http://localhost:8000/validate");
       const BACKEND_LABEL = window.STARTUP_VALIDATOR_BACKEND_LABEL || "FastAPI";
@@ -905,6 +1090,8 @@
       const healthDot = document.getElementById("healthDot");
       const healthText = document.getElementById("healthText");
       const advancedFields = document.getElementById("advancedFields");
+      const sourceShell = document.getElementById("sourceShell");
+      const sourcesBody = document.getElementById("sourcesBody");
       document.getElementById("backendBadge").textContent = BACKEND_LABEL;
 
       function escapeHtml(value) {
@@ -955,6 +1142,78 @@
         return `<div class="metric"><span>${escapeHtml(title)}</span>${list(items || [])}</div>`;
       }
 
+      function sourceItem(title, body) {
+        return `<div class="source-item"><strong>${escapeHtml(title)}</strong><p>${escapeHtml(body)}</p></div>`;
+      }
+
+      function sourceLinks(sources) {
+        if (!Array.isArray(sources) || !sources.length) {
+          return sourceItem("Live web links", "No external links were returned in this run. Demo fallback kept the report available.");
+        }
+        return sources.map((source) => `
+          <div class="source-item">
+            <strong>${escapeHtml(source.title || "Web source")}</strong>
+            ${source.url ? `<a href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer">${escapeHtml(source.url)}</a>` : "<p>No URL</p>"}
+          </div>
+        `).join("");
+      }
+
+      function buildSources(data) {
+        const reports = data.specialist_reports || {};
+        const market = reports.market_research || {};
+        const risk = reports.risk_swot || {};
+        const viability = reports.viability_scorer || {};
+        return `
+          <section class="source-section">
+            <h3>Run context</h3>
+            ${sourceItem("Backend", `${BACKEND_LABEL} / ${data.execution_mode || "sequential"} orchestration`)}
+            ${sourceItem("Execution time", `${data.execution_time_s || "--"} seconds`)}
+            ${sourceItem("Model and APIs", "Groq is used for LLM reasoning when configured. Tavily and Wikipedia support live ReAct market research. Demo fallback is used when keys or services are unavailable.")}
+          </section>
+
+          <section class="source-section">
+            <h3>Market research</h3>
+            ${sourceItem("Pattern", `ReAct loop with ${market.react_turns || 0} turns`)}
+            ${sourceItem("Status", market.status || "complete")}
+            ${sourceLinks(market.sources)}
+            <details class="source-details">
+              <summary>ReAct trace</summary>
+              <div class="trace">${(market.reasoning_trace || []).map((item) => `<code>${escapeHtml(item)}</code>`).join("")}</div>
+            </details>
+          </section>
+
+          <section class="source-section">
+            <h3>Reflection</h3>
+            ${sourceItem("Pattern", `Generator critic revise loop, ${risk.reflection_rounds || 0} round(s)`)}
+            ${sourceItem("Risk level", risk.risk_level || "Medium")}
+            <details class="source-details">
+              <summary>Critique trace</summary>
+              <div class="trace">${(risk.critiques || []).map((item) => `<code>${escapeHtml(item)}</code>`).join("")}</div>
+            </details>
+          </section>
+
+          <section class="source-section">
+            <h3>Tool use</h3>
+            ${sourceItem("Pattern", "Structured business tools with deterministic scoring")}
+            ${sourceItem("Tools", "estimate_market_potential, check_competition_level, calculate_viability_score")}
+            <details class="source-details">
+              <summary>Tool calls</summary>
+              <div class="trace">${(viability.tools_called || []).map((item) => `<code>${escapeHtml(JSON.stringify(item, null, 2))}</code>`).join("")}</div>
+            </details>
+          </section>
+        `;
+      }
+
+      function openSources() {
+        sourceShell.classList.add("open");
+        sourceShell.setAttribute("aria-hidden", "false");
+      }
+
+      function closeSources() {
+        sourceShell.classList.remove("open");
+        sourceShell.setAttribute("aria-hidden", "true");
+      }
+
       function renderReport(data, request) {
         const final = data.final_evaluation || {};
         const reports = data.specialist_reports || {};
@@ -963,6 +1222,7 @@
         const viability = reports.viability_scorer || {};
         const swot = risk.swot || {};
         const conflicts = data.conflicts_detected || [];
+        sourcesBody.innerHTML = buildSources(data);
 
         thread.innerHTML = `
           <div class="turn">
@@ -971,7 +1231,7 @@
 
           <div class="turn assistant">
             <div class="assistant-mark">AI</div>
-            <div class="answer">
+            <div class="answer single-answer">
               <div class="score-line">
                 <div>
                   <h2>${escapeHtml(final.verdict || "Final verdict")}</h2>
@@ -980,74 +1240,46 @@
                 <div class="score"><strong>${escapeHtml(final.overall_score || "--")}</strong></div>
               </div>
               ${conflicts.length ? `<div class="error">${escapeHtml(conflicts.join(" "))}</div>` : ""}
-              <div class="answer-grid">
-                <div class="answer-card"><span>Strengths</span>${list(final.top_strengths || [])}</div>
-                <div class="answer-card"><span>Concerns</span>${list(final.top_concerns || [])}</div>
-                <div class="answer-card"><span>Recommendations</span>${list(final.recommendations || [])}</div>
+
+              <div class="inline-metrics">
+                <span class="inline-pill">Market: ${escapeHtml(market.estimated_market_size || "Unknown")}</span>
+                <span class="inline-pill">Risk: ${escapeHtml(risk.risk_level || "Medium")}</span>
+                <span class="inline-pill">Viability: ${escapeHtml(viability.viability_score || "--")} / 10</span>
+                <span class="inline-pill">Competition: ${escapeHtml(viability.competition_score || "--")} / 10</span>
+              </div>
+
+              <section>
+                <h3>What looks strong</h3>
+                ${list(final.top_strengths || [])}
+              </section>
+
+              <section>
+                <h3>What needs caution</h3>
+                ${list(final.top_concerns || [])}
+              </section>
+
+              <section>
+                <h3>Recommended next moves</h3>
+                ${list(final.recommendations || [])}
+              </section>
+
+              <section>
+                <h3>How this was evaluated</h3>
+                <p>I used three specialist passes: ReAct for market research, Reflection for SWOT/risk quality, and Tool Use for deterministic viability scoring. The detailed evidence, traces, web links, and tool calls are in Sources.</p>
+              </section>
+
+              <div class="answer-actions">
+                <button class="action-btn" type="button" title="Copy">Copy</button>
+                <button class="action-btn" type="button" title="Like">Like</button>
+                <button class="action-btn" type="button" title="Dislike">Dislike</button>
+                <button class="action-btn" type="button" title="Share">Share</button>
+                <button class="action-btn" type="button" title="Regenerate">Regenerate</button>
+                <button class="action-btn" id="sourcesButton" type="button">Sources</button>
               </div>
             </div>
           </div>
-
-          <div class="turn assistant">
-            <div class="assistant-mark">AI</div>
-            <div class="answer agent-list">
-              <article class="agent">
-                <div class="agent-head">
-                  <div>
-                    <h3>Market research</h3>
-                    <p>${escapeHtml(market.executive_summary || market.market_analysis || "Market report complete.")}</p>
-                  </div>
-                  <span class="tag">ReAct</span>
-                </div>
-                <div class="metrics">
-                  ${metric("Market size", market.estimated_market_size || "Unknown")}
-                  ${metric("ReAct turns", market.react_turns || 0)}
-                  ${metric("Status", market.status || "complete")}
-                </div>
-                ${list([...(market.top_competitors || []), ...(market.key_trends || [])])}
-                ${trace("Show ReAct trace", market.reasoning_trace)}
-              </article>
-
-              <article class="agent">
-                <div class="agent-head">
-                  <div>
-                    <h3>Risk and SWOT</h3>
-                    <p>${escapeHtml(risk.executive_summary || "Reflection review complete.")}</p>
-                  </div>
-                  <span class="tag">Reflection</span>
-                </div>
-                <div class="metrics">
-                  ${metric("Risk level", risk.risk_level || "Medium")}
-                  ${metric("Rounds", risk.reflection_rounds || 0)}
-                  ${metric("Approved", risk.approved ? "Yes" : "Review notes")}
-                </div>
-                <div class="swot">
-                  ${swotCard("Strengths", swot.strengths)}
-                  ${swotCard("Weaknesses", swot.weaknesses)}
-                  ${swotCard("Opportunities", swot.opportunities)}
-                  ${swotCard("Threats", swot.threats)}
-                </div>
-                ${trace("Show critique trace", risk.critiques)}
-              </article>
-
-              <article class="agent">
-                <div class="agent-head">
-                  <div>
-                    <h3>Viability score</h3>
-                    <p>${escapeHtml(viability.executive_summary || "Tool scoring complete.")}</p>
-                  </div>
-                  <span class="tag">Tool Use</span>
-                </div>
-                <div class="metrics">
-                  ${metric("Viability", `${viability.viability_score || "--"} / 10`)}
-                  ${metric("Market", `${viability.market_score || "--"} / 10`)}
-                  ${metric("Competition", `${viability.competition_score || "--"} / 10`)}
-                </div>
-                ${trace("Show tool calls", viability.tools_called)}
-              </article>
-            </div>
-          </div>
         `;
+        document.getElementById("sourcesButton").addEventListener("click", openSources);
       }
 
       function renderLoading(request) {
@@ -1149,6 +1381,8 @@
       document.getElementById("openSetupButton").addEventListener("click", () => {
         advancedFields.open = true;
       });
+      document.getElementById("closeSources").addEventListener("click", closeSources);
+      document.getElementById("sourceBackdrop").addEventListener("click", closeSources);
 
       checkHealth();
     </script>
