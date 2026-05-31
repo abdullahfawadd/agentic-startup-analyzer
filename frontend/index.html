@@ -266,6 +266,12 @@
         display: grid;
         place-items: center;
         padding: 56px 0 36px;
+        transition: min-height 260ms ease, padding 260ms ease;
+      }
+
+      .home.compact {
+        min-height: auto;
+        padding: 76px 0 20px;
       }
 
       .center {
@@ -274,6 +280,16 @@
         gap: 34px;
         justify-items: center;
         transform: translateY(-20px);
+        transition: transform 260ms ease, gap 260ms ease;
+      }
+
+      .home.compact .center {
+        gap: 14px;
+        transform: none;
+      }
+
+      .home.compact .intro {
+        display: none;
       }
 
       h1 {
@@ -299,19 +315,30 @@
         box-shadow: var(--shadow);
         border: 1px solid rgba(255, 255, 255, 0.045);
         overflow: hidden;
+        transition: width 260ms ease, border-radius 260ms ease, box-shadow 260ms ease;
+      }
+
+      .home.compact .ask-card {
+        width: min(720px, 100%);
+        border-radius: 30px;
+        box-shadow: 0 18px 55px rgba(0, 0, 0, 0.35);
       }
 
       .ask-row {
         min-height: 82px;
         display: grid;
-        grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+        grid-template-columns: auto minmax(0, 1fr) auto auto;
         align-items: center;
         gap: 12px;
         padding: 14px 22px;
       }
 
-      .plus,
-      .mic {
+      .home.compact .ask-row {
+        min-height: 64px;
+        padding: 10px 16px;
+      }
+
+      .plus {
         width: 34px;
         height: 34px;
         border-radius: var(--radius-pill);
@@ -324,14 +351,8 @@
         place-items: center;
       }
 
-      .plus:hover,
-      .mic:hover {
+      .plus:hover {
         background: rgba(255, 255, 255, 0.08);
-      }
-
-      .mic {
-        font-size: 15px;
-        font-weight: 800;
       }
 
       .ask {
@@ -345,6 +366,18 @@
         background: transparent;
         line-height: 1.55;
         font-size: 19px;
+        overflow-y: auto;
+        scrollbar-width: none;
+      }
+
+      .ask::-webkit-scrollbar {
+        display: none;
+      }
+
+      .home.compact .ask {
+        min-height: 34px;
+        max-height: 92px;
+        font-size: 16px;
       }
 
       .ask::placeholder {
@@ -365,6 +398,10 @@
         background: rgba(255, 255, 255, 0.08);
       }
 
+      .home.compact .mode {
+        display: none;
+      }
+
       .send {
         height: 42px;
         min-width: 104px;
@@ -378,6 +415,10 @@
       .send:disabled {
         opacity: 0.65;
         cursor: not-allowed;
+      }
+
+      .home.compact .send {
+        min-width: 94px;
       }
 
       .advanced {
@@ -438,6 +479,10 @@
         gap: 10px;
       }
 
+      .home.compact .quick {
+        display: none;
+      }
+
       .quick button {
         height: 38px;
         border: 1px solid var(--line);
@@ -458,6 +503,10 @@
         justify-content: center;
         flex-wrap: wrap;
         gap: 8px;
+      }
+
+      .home.compact + .progress {
+        margin: 8px auto 24px;
       }
 
       .progress.on {
@@ -952,7 +1001,6 @@
         }
 
         .mode,
-        .mic,
         .send {
           grid-column: span 1;
         }
@@ -1034,7 +1082,7 @@
 
         <section class="home" id="home">
           <div class="center">
-            <div>
+            <div class="intro">
               <h1>Any new ideas to explore?</h1>
               <p class="owner">Abdullah Fawad</p>
             </div>
@@ -1044,7 +1092,6 @@
                 <button class="plus" type="button" id="setupButton" title="Startup setup">+</button>
                 <textarea id="idea_description" class="ask" name="idea_description" required minlength="20" placeholder="Ask Startup Validator">Byoo is an AI-powered group buying platform that helps households and small retailers pool demand, unlock bulk discounts, and coordinate reliable local delivery in Pakistan.</textarea>
                 <button class="mode" type="button">Flash v</button>
-                <button class="mic" type="button" title="Voice">mic</button>
                 <button class="send" id="submitButton" type="submit">Validate</button>
               </div>
 
@@ -1122,7 +1169,11 @@
       const advancedFields = document.getElementById("advancedFields");
       const sourceShell = document.getElementById("sourceShell");
       const sourcesBody = document.getElementById("sourcesBody");
+      const home = document.getElementById("home");
+      const ideaInput = document.getElementById("idea_description");
       let lastReportText = "";
+      let lastRequest = null;
+      let lastReportData = null;
       document.getElementById("backendBadge").textContent = BACKEND_LABEL;
 
       function escapeHtml(value) {
@@ -1177,6 +1228,7 @@
         const icons = {
           copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"></path></svg>',
           refresh: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M21 12a9 9 0 0 1-15.3 6.4"></path><path d="M3 12A9 9 0 0 1 18.3 5.6"></path><path d="M18 2v4h4"></path><path d="M6 22v-4H2"></path></svg>',
+          download: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5"></path><path d="M12 15V3"></path></svg>',
           sources: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"></path></svg>'
         };
         return icons[name] || "";
@@ -1279,6 +1331,18 @@
         sourceShell.setAttribute("aria-hidden", "true");
       }
 
+      function compactComposer() {
+        home.classList.add("compact");
+        advancedFields.open = false;
+        ideaInput.value = "";
+        ideaInput.placeholder = "Ask another startup idea";
+      }
+
+      function resetComposer() {
+        home.classList.remove("compact");
+        ideaInput.placeholder = "Ask Startup Validator";
+      }
+
       async function copyAnswer(event) {
         if (!lastReportText) return;
         const button = event.currentTarget;
@@ -1295,6 +1359,19 @@
         }
       }
 
+      function exportReport() {
+        if (!lastReportData) return;
+        const blob = new Blob([JSON.stringify(lastReportData, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${(lastRequest?.startup_name || "startup").toLowerCase().replace(/[^a-z0-9]+/g, "-")}-validation-report.json`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+      }
+
       function renderReport(data, request) {
         const final = data.final_evaluation || {};
         const reports = data.specialist_reports || {};
@@ -1303,6 +1380,7 @@
         const viability = reports.viability_scorer || {};
         const conflicts = data.conflicts_detected || [];
         lastReportText = buildPlainAnswer(data);
+        lastReportData = data;
         sourcesBody.innerHTML = buildSources(data);
 
         thread.innerHTML = `
@@ -1347,13 +1425,17 @@
               <div class="answer-actions">
                 <button class="action-btn" id="copyAnswerButton" type="button" title="Copy answer" aria-label="Copy answer">${icon("copy")}</button>
                 <button class="action-btn" id="regenerateButton" type="button" title="Regenerate analysis" aria-label="Regenerate analysis">${icon("refresh")}</button>
+                <button class="action-btn" id="exportButton" type="button" title="Export JSON report" aria-label="Export JSON report">${icon("download")}</button>
                 <button class="action-btn sources-action" id="sourcesButton" type="button" title="View sources">${icon("sources")}<span>Sources</span></button>
               </div>
             </div>
           </div>
         `;
         document.getElementById("copyAnswerButton").addEventListener("click", copyAnswer);
-        document.getElementById("regenerateButton").addEventListener("click", runValidation);
+        document.getElementById("regenerateButton").addEventListener("click", () => {
+          if (lastRequest) runValidation(lastRequest);
+        });
+        document.getElementById("exportButton").addEventListener("click", exportReport);
         document.getElementById("sourcesButton").addEventListener("click", openSources);
       }
 
@@ -1404,8 +1486,10 @@
         }
       }
 
-      async function runValidation() {
-        const request = payload();
+      async function runValidation(requestOverride = null) {
+        const request = requestOverride || payload();
+        lastRequest = request;
+        compactComposer();
         submitButton.disabled = true;
         submitButton.textContent = "Running";
         renderLoading(request);
@@ -1449,6 +1533,10 @@
       document.getElementById("clearButton").addEventListener("click", () => {
         progress.classList.remove("on");
         thread.innerHTML = "";
+        lastRequest = null;
+        lastReportData = null;
+        lastReportText = "";
+        resetComposer();
       });
       document.getElementById("setupButton").addEventListener("click", () => {
         advancedFields.open = !advancedFields.open;
